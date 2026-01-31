@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ type Member = {
   member_number: string;
 };
 
-export default function NewComercioPage() {
+function NewComercioForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const preselectedMemberId = searchParams.get("member_id");
@@ -28,7 +28,6 @@ export default function NewComercioPage() {
 
   useEffect(() => {
     const fetchMembers = async () => {
-      // Get all members that don't have a comercio yet
       const { data } = await supabase
         .from("members")
         .select("id, business_name, trade_name, member_number, comercios(id)")
@@ -89,6 +88,100 @@ export default function NewComercioPage() {
   }
 
   return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-4">
+        <h3 className="font-medium text-sm text-muted-foreground">Información del Comercio</h3>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="member_id">Socio *</Label>
+            <select
+              id="member_id"
+              name="member_id"
+              defaultValue={preselectedMemberId || ""}
+              required
+              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            >
+              <option value="">Seleccionar socio...</option>
+              {members.map((member) => (
+                <option key={member.id} value={member.id}>
+                  {member.trade_name || member.business_name} ({member.member_number})
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="slug">Slug (URL) *</Label>
+            <Input id="slug" name="slug" required placeholder="mi-comercio" />
+          </div>
+          <div className="space-y-2 col-span-2">
+            <Label htmlFor="fantasy_name">Nombre Fantasía</Label>
+            <Input id="fantasy_name" name="fantasy_name" placeholder="Mi Comercio" />
+          </div>
+          <div className="space-y-2 col-span-2">
+            <Label htmlFor="short_description">Descripción Corta</Label>
+            <Input id="short_description" name="short_description" placeholder="Breve descripción del comercio" />
+          </div>
+          <div className="space-y-2 col-span-2">
+            <Label htmlFor="display_address">Dirección a Mostrar</Label>
+            <Input id="display_address" name="display_address" placeholder="Av. Principal 123, Local 5" />
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <h3 className="font-medium text-sm text-muted-foreground">Redes y Contacto</h3>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="instagram">Instagram</Label>
+            <Input id="instagram" name="instagram" placeholder="https://instagram.com/usuario" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="facebook">Facebook</Label>
+            <Input id="facebook" name="facebook" placeholder="https://facebook.com/pagina" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="website">Sitio Web</Label>
+            <Input id="website" name="website" placeholder="https://ejemplo.com" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="whatsapp">WhatsApp</Label>
+            <Input id="whatsapp" name="whatsapp" placeholder="+598 99 123 456" />
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <h3 className="font-medium text-sm text-muted-foreground">Imagen</h3>
+        <div className="space-y-2">
+          <Label htmlFor="logo_url">URL del Logo</Label>
+          <Input id="logo_url" name="logo_url" placeholder="https://ejemplo.com/logo.png" />
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <h3 className="font-medium text-sm text-muted-foreground">Estado</h3>
+        <div className="flex items-center space-x-2">
+          <input type="checkbox" id="active" name="active" className="h-4 w-4" defaultChecked />
+          <Label htmlFor="active">Comercio Activo</Label>
+        </div>
+      </div>
+
+      <div className="flex gap-4">
+        <Button type="submit" disabled={saving}>
+          {saving ? "Guardando..." : "Crear Comercio"}
+        </Button>
+        <Link href="/admin/comercios">
+          <Button type="button" variant="outline">
+            Cancelar
+          </Button>
+        </Link>
+      </div>
+    </form>
+  );
+}
+
+export default function NewComercioPage() {
+  return (
     <div className="space-y-6 max-w-2xl">
       <div className="flex items-center gap-4">
         <Link href="/admin/comercios">
@@ -99,95 +192,9 @@ export default function NewComercioPage() {
         <h1 className="text-2xl font-bold">Nuevo Comercio</h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-4">
-          <h3 className="font-medium text-sm text-muted-foreground">Información del Comercio</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="member_id">Socio *</Label>
-              <select
-                id="member_id"
-                name="member_id"
-                defaultValue={preselectedMemberId || ""}
-                required
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              >
-                <option value="">Seleccionar socio...</option>
-                {members.map((member) => (
-                  <option key={member.id} value={member.id}>
-                    {member.trade_name || member.business_name} ({member.member_number})
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="slug">Slug (URL) *</Label>
-              <Input id="slug" name="slug" required placeholder="mi-comercio" />
-            </div>
-            <div className="space-y-2 col-span-2">
-              <Label htmlFor="fantasy_name">Nombre Fantasía</Label>
-              <Input id="fantasy_name" name="fantasy_name" placeholder="Mi Comercio" />
-            </div>
-            <div className="space-y-2 col-span-2">
-              <Label htmlFor="short_description">Descripción Corta</Label>
-              <Input id="short_description" name="short_description" placeholder="Breve descripción del comercio" />
-            </div>
-            <div className="space-y-2 col-span-2">
-              <Label htmlFor="display_address">Dirección a Mostrar</Label>
-              <Input id="display_address" name="display_address" placeholder="Av. Principal 123, Local 5" />
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <h3 className="font-medium text-sm text-muted-foreground">Redes y Contacto</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="instagram">Instagram</Label>
-              <Input id="instagram" name="instagram" placeholder="https://instagram.com/usuario" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="facebook">Facebook</Label>
-              <Input id="facebook" name="facebook" placeholder="https://facebook.com/pagina" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="website">Sitio Web</Label>
-              <Input id="website" name="website" placeholder="https://ejemplo.com" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="whatsapp">WhatsApp</Label>
-              <Input id="whatsapp" name="whatsapp" placeholder="+598 99 123 456" />
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <h3 className="font-medium text-sm text-muted-foreground">Imagen</h3>
-          <div className="space-y-2">
-            <Label htmlFor="logo_url">URL del Logo</Label>
-            <Input id="logo_url" name="logo_url" placeholder="https://ejemplo.com/logo.png" />
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <h3 className="font-medium text-sm text-muted-foreground">Estado</h3>
-          <div className="flex items-center space-x-2">
-            <input type="checkbox" id="active" name="active" className="h-4 w-4" defaultChecked />
-            <Label htmlFor="active">Comercio Activo</Label>
-          </div>
-        </div>
-
-        <div className="flex gap-4">
-          <Button type="submit" disabled={saving}>
-            {saving ? "Guardando..." : "Crear Comercio"}
-          </Button>
-          <Link href="/admin/comercios">
-            <Button type="button" variant="outline">
-              Cancelar
-            </Button>
-          </Link>
-        </div>
-      </form>
+      <Suspense fallback={<div>Cargando...</div>}>
+        <NewComercioForm />
+      </Suspense>
     </div>
   );
 }
