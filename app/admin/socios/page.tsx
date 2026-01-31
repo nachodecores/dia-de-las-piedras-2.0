@@ -28,10 +28,20 @@ type Member = {
   member_number: string;
   business_name: string;
   trade_name: string;
+  legal_form: string;
+  tax_id: string;
+  member_type: string;
+  payment_method: string;
+  monthly_fee: number;
+  fee_up_to_date: boolean;
+  street: string;
+  street_number: string;
+  city: string;
   first_name: string;
   last_name: string;
+  mobile_phone: string;
   email: string;
-  city: string;
+  segments: { name: string } | null;
 };
 
 type Segment = {
@@ -49,7 +59,7 @@ export default function SociosPage() {
     const [membersRes, segmentsRes] = await Promise.all([
       supabase
         .from("members")
-        .select("id, member_number, business_name, trade_name, first_name, last_name, email, city")
+        .select("*, segments(name)")
         .order("created_at", { ascending: false }),
       supabase.from("segments").select("id, name").order("name"),
     ]);
@@ -265,38 +275,52 @@ export default function SociosPage() {
         </Dialog>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Nº Socio</TableHead>
-            <TableHead>Razón Social</TableHead>
-            <TableHead>Nombre Fantasía</TableHead>
-            <TableHead>Nombre</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Ciudad</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {members.length === 0 ? (
+      <div className="overflow-x-auto border rounded-md">
+        <Table>
+          <TableHeader>
             <TableRow>
-              <TableCell colSpan={6} className="text-center text-muted-foreground">
-                No hay socios registrados
-              </TableCell>
+              <TableHead className="whitespace-nowrap">Nº Socio</TableHead>
+              <TableHead className="whitespace-nowrap">Razón Social</TableHead>
+              <TableHead className="whitespace-nowrap">Nombre Fantasía</TableHead>
+              <TableHead className="whitespace-nowrap">RUT</TableHead>
+              <TableHead className="whitespace-nowrap">Segmento</TableHead>
+              <TableHead className="whitespace-nowrap">Tipo</TableHead>
+              <TableHead className="whitespace-nowrap">Contacto</TableHead>
+              <TableHead className="whitespace-nowrap">Celular</TableHead>
+              <TableHead className="whitespace-nowrap">Email</TableHead>
+              <TableHead className="whitespace-nowrap">Dirección</TableHead>
+              <TableHead className="whitespace-nowrap">Cuota</TableHead>
+              <TableHead className="whitespace-nowrap">Al Día</TableHead>
             </TableRow>
-          ) : (
-            members.map((member) => (
-              <TableRow key={member.id}>
-                <TableCell>{member.member_number}</TableCell>
-                <TableCell>{member.business_name}</TableCell>
-                <TableCell>{member.trade_name}</TableCell>
-                <TableCell>{member.first_name} {member.last_name}</TableCell>
-                <TableCell>{member.email}</TableCell>
-                <TableCell>{member.city}</TableCell>
+          </TableHeader>
+          <TableBody>
+            {members.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={12} className="text-center text-muted-foreground">
+                  No hay socios registrados
+                </TableCell>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+            ) : (
+              members.map((member) => (
+                <TableRow key={member.id}>
+                  <TableCell className="whitespace-nowrap">{member.member_number}</TableCell>
+                  <TableCell className="whitespace-nowrap">{member.business_name}</TableCell>
+                  <TableCell className="whitespace-nowrap">{member.trade_name}</TableCell>
+                  <TableCell className="whitespace-nowrap">{member.tax_id}</TableCell>
+                  <TableCell className="whitespace-nowrap">{member.segments?.name}</TableCell>
+                  <TableCell className="whitespace-nowrap">{member.member_type}</TableCell>
+                  <TableCell className="whitespace-nowrap">{member.first_name} {member.last_name}</TableCell>
+                  <TableCell className="whitespace-nowrap">{member.mobile_phone}</TableCell>
+                  <TableCell className="whitespace-nowrap">{member.email}</TableCell>
+                  <TableCell className="whitespace-nowrap">{member.street} {member.street_number}, {member.city}</TableCell>
+                  <TableCell className="whitespace-nowrap">${member.monthly_fee}</TableCell>
+                  <TableCell className="whitespace-nowrap">{member.fee_up_to_date ? "Sí" : "No"}</TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }
