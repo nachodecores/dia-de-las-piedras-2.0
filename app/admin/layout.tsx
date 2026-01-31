@@ -16,7 +16,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
           <UserButton />
         </header>
-        <main className="flex-1 p-4">{children}</main>
+        <main className="flex-1 p-4 overflow-hidden">{children}</main>
       </SidebarInset>
       <Toaster />
     </SidebarProvider>

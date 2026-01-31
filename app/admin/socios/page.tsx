@@ -30,17 +30,25 @@ type Member = {
   trade_name: string;
   legal_form: string;
   tax_id: string;
+  description: string;
   member_type: string;
   payment_method: string;
+  payment_frequency: string;
   monthly_fee: number;
   fee_up_to_date: boolean;
   street: string;
   street_number: string;
+  address_notes: string;
+  apartment: string;
   city: string;
   first_name: string;
   last_name: string;
+  national_id: string;
   mobile_phone: string;
+  phone: string;
   email: string;
+  cpy_client: boolean;
+  piedras_day_member: boolean;
   segments: { name: string } | null;
 };
 
@@ -117,7 +125,7 @@ export default function SociosPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 h-full flex flex-col">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Socios</h1>
         <Dialog open={open} onOpenChange={setOpen}>
@@ -275,52 +283,76 @@ export default function SociosPage() {
         </Dialog>
       </div>
 
-      <div className="overflow-x-auto border rounded-md">
-        <Table>
+      <Table className="border rounded-lg">
           <TableHeader>
-            <TableRow>
-              <TableHead className="whitespace-nowrap">Nº Socio</TableHead>
-              <TableHead className="whitespace-nowrap">Razón Social</TableHead>
-              <TableHead className="whitespace-nowrap">Nombre Fantasía</TableHead>
-              <TableHead className="whitespace-nowrap">RUT</TableHead>
-              <TableHead className="whitespace-nowrap">Segmento</TableHead>
-              <TableHead className="whitespace-nowrap">Tipo</TableHead>
-              <TableHead className="whitespace-nowrap">Contacto</TableHead>
-              <TableHead className="whitespace-nowrap">Celular</TableHead>
-              <TableHead className="whitespace-nowrap">Email</TableHead>
-              <TableHead className="whitespace-nowrap">Dirección</TableHead>
-              <TableHead className="whitespace-nowrap">Cuota</TableHead>
-              <TableHead className="whitespace-nowrap">Al Día</TableHead>
+            <TableRow className="bg-muted/50">
+              <TableHead className="whitespace-nowrap px-4 py-3 font-semibold">Nº Socio</TableHead>
+              <TableHead className="whitespace-nowrap px-4 py-3 font-semibold border-l">Razón Social</TableHead>
+              <TableHead className="whitespace-nowrap px-4 py-3 font-semibold">Nombre Fantasía</TableHead>
+              <TableHead className="whitespace-nowrap px-4 py-3 font-semibold">Forma Jurídica</TableHead>
+              <TableHead className="whitespace-nowrap px-4 py-3 font-semibold">RUT</TableHead>
+              <TableHead className="whitespace-nowrap px-4 py-3 font-semibold">Descripción</TableHead>
+              <TableHead className="whitespace-nowrap px-4 py-3 font-semibold border-l">Segmento</TableHead>
+              <TableHead className="whitespace-nowrap px-4 py-3 font-semibold">Tipo Socio</TableHead>
+              <TableHead className="whitespace-nowrap px-4 py-3 font-semibold border-l">Forma Pago</TableHead>
+              <TableHead className="whitespace-nowrap px-4 py-3 font-semibold">Frecuencia</TableHead>
+              <TableHead className="whitespace-nowrap px-4 py-3 font-semibold">Cuota</TableHead>
+              <TableHead className="whitespace-nowrap px-4 py-3 font-semibold">Al Día</TableHead>
+              <TableHead className="whitespace-nowrap px-4 py-3 font-semibold border-l">Calle</TableHead>
+              <TableHead className="whitespace-nowrap px-4 py-3 font-semibold">Nº</TableHead>
+              <TableHead className="whitespace-nowrap px-4 py-3 font-semibold">Depto</TableHead>
+              <TableHead className="whitespace-nowrap px-4 py-3 font-semibold">Ciudad</TableHead>
+              <TableHead className="whitespace-nowrap px-4 py-3 font-semibold">Obs. Dirección</TableHead>
+              <TableHead className="whitespace-nowrap px-4 py-3 font-semibold border-l">Nombre</TableHead>
+              <TableHead className="whitespace-nowrap px-4 py-3 font-semibold">Apellido</TableHead>
+              <TableHead className="whitespace-nowrap px-4 py-3 font-semibold">Cédula</TableHead>
+              <TableHead className="whitespace-nowrap px-4 py-3 font-semibold">Celular</TableHead>
+              <TableHead className="whitespace-nowrap px-4 py-3 font-semibold">Teléfono</TableHead>
+              <TableHead className="whitespace-nowrap px-4 py-3 font-semibold">Email</TableHead>
+              <TableHead className="whitespace-nowrap px-4 py-3 font-semibold border-l">CPY</TableHead>
+              <TableHead className="whitespace-nowrap px-4 py-3 font-semibold">Día Piedras</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {members.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={12} className="text-center text-muted-foreground">
+                <TableCell colSpan={25} className="text-center text-muted-foreground py-8">
                   No hay socios registrados
                 </TableCell>
               </TableRow>
             ) : (
               members.map((member) => (
-                <TableRow key={member.id}>
-                  <TableCell className="whitespace-nowrap">{member.member_number}</TableCell>
-                  <TableCell className="whitespace-nowrap">{member.business_name}</TableCell>
-                  <TableCell className="whitespace-nowrap">{member.trade_name}</TableCell>
-                  <TableCell className="whitespace-nowrap">{member.tax_id}</TableCell>
-                  <TableCell className="whitespace-nowrap">{member.segments?.name}</TableCell>
-                  <TableCell className="whitespace-nowrap">{member.member_type}</TableCell>
-                  <TableCell className="whitespace-nowrap">{member.first_name} {member.last_name}</TableCell>
-                  <TableCell className="whitespace-nowrap">{member.mobile_phone}</TableCell>
-                  <TableCell className="whitespace-nowrap">{member.email}</TableCell>
-                  <TableCell className="whitespace-nowrap">{member.street} {member.street_number}, {member.city}</TableCell>
-                  <TableCell className="whitespace-nowrap">${member.monthly_fee}</TableCell>
-                  <TableCell className="whitespace-nowrap">{member.fee_up_to_date ? "Sí" : "No"}</TableCell>
+                <TableRow key={member.id} className="hover:bg-muted/30">
+                  <TableCell className="whitespace-nowrap px-4 py-3 font-medium">{member.member_number}</TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3 border-l">{member.business_name}</TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3">{member.trade_name}</TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3">{member.legal_form}</TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3">{member.tax_id}</TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3 max-w-48 truncate">{member.description}</TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3 border-l">{member.segments?.name}</TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3">{member.member_type}</TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3 border-l">{member.payment_method}</TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3">{member.payment_frequency}</TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3">{member.monthly_fee}</TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3">{member.fee_up_to_date ? "✓" : "✗"}</TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3 border-l">{member.street}</TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3">{member.street_number}</TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3">{member.apartment}</TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3">{member.city}</TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3 max-w-48 truncate">{member.address_notes}</TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3 border-l">{member.first_name}</TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3">{member.last_name}</TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3">{member.national_id}</TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3">{member.mobile_phone}</TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3">{member.phone}</TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3">{member.email}</TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3 border-l">{member.cpy_client ? "✓" : "✗"}</TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3">{member.piedras_day_member ? "✓" : "✗"}</TableCell>
                 </TableRow>
               ))
             )}
           </TableBody>
         </Table>
-      </div>
     </div>
   );
 }
