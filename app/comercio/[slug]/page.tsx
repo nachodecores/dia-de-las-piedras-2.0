@@ -1,16 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
-import { ArrowLeft, Instagram, Facebook, Globe, MessageCircle, MapPin, Star } from "lucide-react";
+import { ArrowLeft, Instagram, Facebook, Globe, MessageCircle, MapPin, Star, Gift, Check } from "lucide-react";
 
 type Discount = {
   id: string;
   title: string;
   description: string | null;
   featured: boolean;
+};
+
+type Raffle = {
+  id: string;
+  name: string;
+  secret_code: string;
 };
 
 type Comercio = {
@@ -28,6 +34,7 @@ type Comercio = {
 
 export default function ComercioPublicPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const slug = params.slug as string;
 
   const [comercio, setComercio] = useState<Comercio | null>(null);
@@ -35,21 +42,38 @@ export default function ComercioPublicPage() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
+  // Raffle participation state
+  const [activeRaffle, setActiveRaffle] = useState<Raffle | null>(null);
+  const [showRaffleForm, setShowRaffleForm] = useState(false);
+  const [participantName, setParticipantName] = useState("");
+  const [participantWhatsapp, setParticipantWhatsapp] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
+
   useEffect(() => {
+    // Check for code param and remove it immediately from URL
+    const code = searchParams.get("code");
+    if (code) {
+      // Remove code from URL without reload
+      window.history.replaceState({}, "", `/comercio/${slug}`);
+    }
+
     const fetchData = async () => {
-      const { data: comercioData, error } = await supabase
+      const { data: comercioData, error: comercioError } = await supabase
         .from("comercios")
         .select("*")
         .eq("slug", slug)
         .eq("active", true)
         .single();
 
-      if (error || !comercioData) {
+      if (comercioError || !comercioData) {
         setNotFound(true);
         setLoading(false);
         return;
       }
 
+      // Fetch discounts
       const { data: discountsData } = await supabase
         .from("discounts")
         .select("id, title, description, featured")
@@ -59,11 +83,57 @@ export default function ComercioPublicPage() {
 
       setComercio(comercioData);
       setDiscounts(discountsData || []);
+
+      // If there's a code, validate it against active global raffles
+      if (code) {
+        const { data: raffleData } = await supabase
+          .from("raffles")
+          .select("id, name, secret_code")
+          .eq("secret_code", code)
+          .eq("active", true)
+          .single();
+
+        if (raffleData) {
+          setActiveRaffle(raffleData);
+          setShowRaffleForm(true);
+        }
+      }
+
       setLoading(false);
     };
 
     fetchData();
-  }, [slug]);
+  }, [slug, searchParams]);
+
+  const handleSubmitParticipation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeRaffle) return;
+
+    setError("");
+    setSubmitting(true);
+
+    if (!participantName.trim() || !participantWhatsapp.trim()) {
+      setError("Por favor completa todos los campos");
+      setSubmitting(false);
+      return;
+    }
+
+    const { error: insertError } = await supabase.from("raffle_participants").insert({
+      raffle_id: activeRaffle.id,
+      comercio_id: comercio?.id,
+      name: participantName.trim(),
+      whatsapp: participantWhatsapp.trim(),
+    });
+
+    if (insertError) {
+      setError("Error al registrar participación. Intenta nuevamente.");
+      setSubmitting(false);
+      return;
+    }
+
+    setSubmitted(true);
+    setSubmitting(false);
+  };
 
   if (loading) {
     return (
@@ -94,6 +164,70 @@ export default function ComercioPublicPage() {
           <ArrowLeft className="h-4 w-4" />
           Volver a comercios
         </Link>
+
+        {/* Raffle Participation Form */}
+        {showRaffleForm && activeRaffle && (
+          <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg shadow-lg p-6 mb-6 text-white">
+            <div className="flex items-center gap-3 mb-4">
+              <Gift className="h-6 w-6" />
+              <h2 className="text-xl font-bold">{activeRaffle.name}</h2>
+            </div>
+
+            {submitted ? (
+              <div className="bg-white/20 rounded-lg p-6 text-center">
+                <Check className="h-12 w-12 mx-auto mb-3" />
+                <p className="text-lg font-semibold">¡Participación registrada!</p>
+                <p className="text-sm opacity-90 mt-1">Buena suerte en el sorteo</p>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmitParticipation} className="space-y-4">
+                <p className="text-sm opacity-90">Completa tus datos para participar</p>
+
+                <div className="space-y-1">
+                  <label htmlFor="name" className="text-sm font-medium">
+                    Nombre completo
+                  </label>
+                  <input
+                    id="name"
+                    type="text"
+                    value={participantName}
+                    onChange={(e) => setParticipantName(e.target.value)}
+                    className="w-full px-4 py-2 rounded-lg text-gray-900"
+                    placeholder="Tu nombre"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label htmlFor="whatsapp" className="text-sm font-medium">
+                    WhatsApp
+                  </label>
+                  <input
+                    id="whatsapp"
+                    type="tel"
+                    value={participantWhatsapp}
+                    onChange={(e) => setParticipantWhatsapp(e.target.value)}
+                    className="w-full px-4 py-2 rounded-lg text-gray-900"
+                    placeholder="+598 99 123 456"
+                    required
+                  />
+                </div>
+
+                {error && (
+                  <p className="text-sm bg-red-500/20 p-2 rounded">{error}</p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full bg-white text-purple-600 font-semibold py-3 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50"
+                >
+                  {submitting ? "Registrando..." : "Participar"}
+                </button>
+              </form>
+            )}
+          </div>
+        )}
 
         <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
           {comercio.logo_url && (
