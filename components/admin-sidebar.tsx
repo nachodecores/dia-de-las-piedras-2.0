@@ -1,6 +1,6 @@
 "use client";
 
-import { Users } from "lucide-react";
+import { Users, Store } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -21,6 +21,11 @@ const navItems = [
     title: "Socios",
     url: "/admin/socios",
     icon: Users,
+  },
+  {
+    title: "Comercios",
+    url: "/admin/comercios",
+    icon: Store,
   },
 ];
 

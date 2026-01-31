@@ -22,19 +22,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Store, Pencil } from "lucide-react";
 import { toast } from "sonner";
+import Link from "next/link";
 
 type Comercio = {
   id: string;
   slug: string;
-  logo_url: string;
-  short_description: string;
-  instagram: string;
-  facebook: string;
-  website: string;
-  whatsapp: string;
-  active: boolean;
-  display_address: string;
-};
+  fantasy_name: string | null;
+} | null;
 
 type Member = {
   id: string;
@@ -64,7 +58,7 @@ type Member = {
   piedras_day_member: boolean;
   segment_id: string;
   segments: { name: string } | null;
-  comercios: Comercio[] | null;
+  comercios: Comercio;
 };
 
 type Segment = {
@@ -79,13 +73,12 @@ export default function SociosPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
-  const [isPiedrasMember, setIsPiedrasMember] = useState(false);
 
   const fetchData = async () => {
     const [membersRes, segmentsRes] = await Promise.all([
       supabase
         .from("members")
-        .select("*, segments(name), comercios(*)")
+        .select("*, segments(name), comercios(id, slug, fantasy_name)")
         .order("created_at", { ascending: false }),
       supabase.from("segments").select("id, name").order("name"),
     ]);
@@ -101,7 +94,6 @@ export default function SociosPage() {
   const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const isPiedras = formData.get("piedras_day_member") === "on";
 
     const newMember = {
       business_name: formData.get("business_name") || null,
@@ -127,47 +119,17 @@ export default function SociosPage() {
       phone: formData.get("phone") || null,
       email: formData.get("email") || null,
       cpy_client: formData.get("cpy_client") === "on",
-      piedras_day_member: isPiedras,
     };
 
-    const { data: memberData, error: memberError } = await supabase
-      .from("members")
-      .insert(newMember)
-      .select()
-      .single();
+    const { error: memberError } = await supabase.from("members").insert(newMember);
 
     if (memberError) {
       toast.error("Error al crear socio", { description: memberError.message });
       return;
     }
 
-    if (isPiedras && memberData) {
-      const comercioData = {
-        member_id: memberData.id,
-        slug: formData.get("comercio_slug") || null,
-        logo_url: formData.get("comercio_logo_url") || null,
-        short_description: formData.get("comercio_short_description") || null,
-        instagram: formData.get("comercio_instagram") || null,
-        facebook: formData.get("comercio_facebook") || null,
-        website: formData.get("comercio_website") || null,
-        whatsapp: formData.get("comercio_whatsapp") || null,
-        active: formData.get("comercio_active") === "on",
-        display_address: formData.get("comercio_display_address") || null,
-      };
-
-      const { error: comercioError } = await supabase
-        .from("comercios")
-        .insert(comercioData);
-
-      if (comercioError) {
-        toast.error("Error al crear comercio", { description: comercioError.message });
-        return;
-      }
-    }
-
     toast.success("Socio creado correctamente");
     setCreateOpen(false);
-    setIsPiedrasMember(false);
     fetchData();
   };
 
@@ -176,7 +138,6 @@ export default function SociosPage() {
     if (!editingMember) return;
 
     const formData = new FormData(e.currentTarget);
-    const isPiedras = formData.get("piedras_day_member") === "on";
 
     const updatedMember = {
       business_name: formData.get("business_name") || null,
@@ -202,7 +163,6 @@ export default function SociosPage() {
       phone: formData.get("phone") || null,
       email: formData.get("email") || null,
       cpy_client: formData.get("cpy_client") === "on",
-      piedras_day_member: isPiedras,
     };
 
     const { error: memberError } = await supabase
@@ -215,56 +175,14 @@ export default function SociosPage() {
       return;
     }
 
-    const existingComercio = editingMember.comercios?.[0];
-
-    if (isPiedras) {
-      const comercioData = {
-        member_id: editingMember.id,
-        slug: formData.get("comercio_slug") || null,
-        logo_url: formData.get("comercio_logo_url") || null,
-        short_description: formData.get("comercio_short_description") || null,
-        instagram: formData.get("comercio_instagram") || null,
-        facebook: formData.get("comercio_facebook") || null,
-        website: formData.get("comercio_website") || null,
-        whatsapp: formData.get("comercio_whatsapp") || null,
-        active: formData.get("comercio_active") === "on",
-        display_address: formData.get("comercio_display_address") || null,
-      };
-
-      if (existingComercio) {
-        const { error: comercioError } = await supabase
-          .from("comercios")
-          .update(comercioData)
-          .eq("id", existingComercio.id);
-
-        if (comercioError) {
-          toast.error("Error al actualizar comercio", { description: comercioError.message });
-          return;
-        }
-      } else {
-        const { error: comercioError } = await supabase
-          .from("comercios")
-          .insert(comercioData);
-
-        if (comercioError) {
-          toast.error("Error al crear comercio", { description: comercioError.message });
-          return;
-        }
-      }
-    } else if (existingComercio) {
-      await supabase.from("comercios").delete().eq("id", existingComercio.id);
-    }
-
     toast.success("Socio actualizado correctamente");
     setEditOpen(false);
     setEditingMember(null);
-    setIsPiedrasMember(false);
     fetchData();
   };
 
   const openEdit = (member: Member) => {
     setEditingMember(member);
-    setIsPiedrasMember(member.piedras_day_member);
     setEditOpen(true);
   };
 
@@ -273,10 +191,35 @@ export default function SociosPage() {
   }
 
   const MemberForm = ({ onSubmit, member, isEdit }: { onSubmit: (e: React.FormEvent<HTMLFormElement>) => void; member?: Member | null; isEdit?: boolean }) => {
-    const comercio = member?.comercios?.[0];
+    const hasComercio = !!member?.comercios;
 
     return (
       <form onSubmit={onSubmit} className="space-y-6">
+        {isEdit && (
+          <div className={`p-4 rounded-lg border ${hasComercio ? "bg-amber-50 border-amber-200" : "bg-muted/50 border-border"}`}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Comercio Día de las Piedras</p>
+                {hasComercio ? (
+                  <p className="text-sm text-amber-700 font-medium mt-1">
+                    Asociado: {member!.comercios!.fantasy_name || member!.comercios!.slug}
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground mt-1">No tiene comercio asociado</p>
+                )}
+              </div>
+              {hasComercio && (
+                <Link
+                  href={`/admin/comercios/${member!.comercios!.id}`}
+                  className="text-sm text-amber-600 hover:text-amber-800 underline"
+                >
+                  Ver comercio
+                </Link>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="space-y-4">
           <h3 className="font-medium text-sm text-muted-foreground">Información General</h3>
           <div className="grid grid-cols-2 gap-4">
@@ -403,71 +346,11 @@ export default function SociosPage() {
 
         <div className="space-y-4">
           <h3 className="font-medium text-sm text-muted-foreground">Otros</h3>
-          <div className="flex gap-6">
-            <div className="flex items-center space-x-2">
-              <input type="checkbox" id="cpy_client" name="cpy_client" className="h-4 w-4" defaultChecked={member?.cpy_client} />
-              <Label htmlFor="cpy_client">Cliente CPY</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="piedras_day_member"
-                name="piedras_day_member"
-                className="h-4 w-4"
-                checked={isPiedrasMember}
-                onChange={(e) => setIsPiedrasMember(e.target.checked)}
-              />
-              <Label htmlFor="piedras_day_member">Adherido Día Piedras</Label>
-            </div>
+          <div className="flex items-center space-x-2">
+            <input type="checkbox" id="cpy_client" name="cpy_client" className="h-4 w-4" defaultChecked={member?.cpy_client} />
+            <Label htmlFor="cpy_client">Cliente CPY</Label>
           </div>
         </div>
-
-        {isPiedrasMember && (
-          <div className="space-y-4 border-t pt-4 bg-amber-50 -mx-6 px-6 py-4 border-amber-200">
-            <h3 className="font-medium text-sm text-amber-800 flex items-center gap-2">
-              <Store className="h-4 w-4" />
-              Datos del Comercio (Día Piedras)
-            </h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="comercio_slug">Slug (URL)</Label>
-                <Input id="comercio_slug" name="comercio_slug" placeholder="mi-comercio" defaultValue={comercio?.slug || ""} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="comercio_logo_url">Logo URL</Label>
-                <Input id="comercio_logo_url" name="comercio_logo_url" type="url" defaultValue={comercio?.logo_url || ""} />
-              </div>
-              <div className="space-y-2 col-span-2">
-                <Label htmlFor="comercio_short_description">Descripción Corta</Label>
-                <Input id="comercio_short_description" name="comercio_short_description" defaultValue={comercio?.short_description || ""} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="comercio_instagram">Instagram</Label>
-                <Input id="comercio_instagram" name="comercio_instagram" placeholder="https://instagram.com/..." defaultValue={comercio?.instagram || ""} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="comercio_facebook">Facebook</Label>
-                <Input id="comercio_facebook" name="comercio_facebook" placeholder="https://facebook.com/..." defaultValue={comercio?.facebook || ""} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="comercio_website">Sitio Web</Label>
-                <Input id="comercio_website" name="comercio_website" type="url" defaultValue={comercio?.website || ""} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="comercio_whatsapp">WhatsApp</Label>
-                <Input id="comercio_whatsapp" name="comercio_whatsapp" placeholder="+598..." defaultValue={comercio?.whatsapp || ""} />
-              </div>
-              <div className="space-y-2 col-span-2">
-                <Label htmlFor="comercio_display_address">Dirección a Mostrar</Label>
-                <Input id="comercio_display_address" name="comercio_display_address" defaultValue={comercio?.display_address || ""} />
-              </div>
-              <div className="flex items-center space-x-2">
-                <input type="checkbox" id="comercio_active" name="comercio_active" className="h-4 w-4" defaultChecked={comercio?.active ?? true} />
-                <Label htmlFor="comercio_active">Activo</Label>
-              </div>
-            </div>
-          </div>
-        )}
 
         <Button type="submit" className="w-full">
           {isEdit ? "Guardar Cambios" : "Crear Socio"}
@@ -480,7 +363,7 @@ export default function SociosPage() {
     <div className="space-y-4 h-full flex flex-col">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Socios</h1>
-        <Dialog open={createOpen} onOpenChange={(isOpen) => { setCreateOpen(isOpen); if (!isOpen) setIsPiedrasMember(false); }}>
+        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
@@ -496,18 +379,10 @@ export default function SociosPage() {
         </Dialog>
       </div>
 
-      <Dialog open={editOpen} onOpenChange={(isOpen) => { setEditOpen(isOpen); if (!isOpen) { setEditingMember(null); setIsPiedrasMember(false); } }}>
+      <Dialog open={editOpen} onOpenChange={(isOpen) => { setEditOpen(isOpen); if (!isOpen) setEditingMember(null); }}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              Editar Socio
-              {editingMember?.comercios?.[0] && (
-                <span className="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full flex items-center gap-1">
-                  <Store className="h-3 w-3" />
-                  Comercio
-                </span>
-              )}
-            </DialogTitle>
+            <DialogTitle>Editar Socio</DialogTitle>
           </DialogHeader>
           <MemberForm onSubmit={handleEdit} member={editingMember} isEdit />
         </DialogContent>
@@ -517,8 +392,9 @@ export default function SociosPage() {
         <TableHeader>
           <TableRow className="bg-muted/50">
             <TableHead className="whitespace-nowrap px-4 py-3 font-semibold w-10"></TableHead>
-            <TableHead className="whitespace-nowrap px-4 py-3 font-semibold">Nº Socio</TableHead>
-            <TableHead className="whitespace-nowrap px-4 py-3 font-semibold border-l">Razón Social</TableHead>
+            <TableHead className="whitespace-nowrap px-4 py-3 font-semibold bg-amber-100/50">Comercio</TableHead>
+            <TableHead className="whitespace-nowrap px-4 py-3 font-semibold border-l">Nº Socio</TableHead>
+            <TableHead className="whitespace-nowrap px-4 py-3 font-semibold">Razón Social</TableHead>
             <TableHead className="whitespace-nowrap px-4 py-3 font-semibold">Nombre Fantasía</TableHead>
             <TableHead className="whitespace-nowrap px-4 py-3 font-semibold">Forma Jurídica</TableHead>
             <TableHead className="whitespace-nowrap px-4 py-3 font-semibold">RUT</TableHead>
@@ -541,22 +417,18 @@ export default function SociosPage() {
             <TableHead className="whitespace-nowrap px-4 py-3 font-semibold">Teléfono</TableHead>
             <TableHead className="whitespace-nowrap px-4 py-3 font-semibold">Email</TableHead>
             <TableHead className="whitespace-nowrap px-4 py-3 font-semibold border-l">CPY</TableHead>
-            <TableHead className="whitespace-nowrap px-4 py-3 font-semibold border-l bg-amber-100/50">Día Piedras</TableHead>
-            <TableHead className="whitespace-nowrap px-4 py-3 font-semibold bg-amber-100/50">Comercio Slug</TableHead>
-            <TableHead className="whitespace-nowrap px-4 py-3 font-semibold bg-amber-100/50">Comercio Activo</TableHead>
-            <TableHead className="whitespace-nowrap px-4 py-3 font-semibold bg-amber-100/50">Dirección Comercio</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {members.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={29} className="text-center text-muted-foreground py-8">
+              <TableCell colSpan={26} className="text-center text-muted-foreground py-8">
                 No hay socios registrados
               </TableCell>
             </TableRow>
           ) : (
             members.map((member) => {
-              const hasComercio = member.comercios && member.comercios.length > 0;
+              const hasComercio = !!member.comercios;
               return (
                 <TableRow
                   key={member.id}
@@ -564,13 +436,23 @@ export default function SociosPage() {
                   onClick={() => openEdit(member)}
                 >
                   <TableCell className="px-4 py-3">
-                    <div className="flex items-center gap-1">
-                      <Pencil className="h-3 w-3 text-muted-foreground" />
-                      {hasComercio && <Store className="h-4 w-4 text-amber-600" />}
-                    </div>
+                    <Pencil className="h-3 w-3 text-muted-foreground" />
                   </TableCell>
-                  <TableCell className="whitespace-nowrap px-4 py-3 font-medium">{member.member_number}</TableCell>
-                  <TableCell className="whitespace-nowrap px-4 py-3 border-l">{member.business_name}</TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3 bg-amber-50/50" onClick={(e) => e.stopPropagation()}>
+                    {hasComercio ? (
+                      <Link
+                        href={`/admin/comercios/${member.comercios!.id}`}
+                        className="inline-flex items-center gap-1 bg-amber-500 text-white text-xs px-2 py-1 rounded-full font-medium hover:bg-amber-600 transition-colors"
+                      >
+                        <Store className="h-3 w-3" />
+                        {member.comercios!.fantasy_name || member.comercios!.slug}
+                      </Link>
+                    ) : (
+                      <span className="text-muted-foreground text-xs">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3 font-medium border-l">{member.member_number}</TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3">{member.business_name}</TableCell>
                   <TableCell className="whitespace-nowrap px-4 py-3">{member.trade_name}</TableCell>
                   <TableCell className="whitespace-nowrap px-4 py-3">{member.legal_form}</TableCell>
                   <TableCell className="whitespace-nowrap px-4 py-3">{member.tax_id}</TableCell>
@@ -593,22 +475,6 @@ export default function SociosPage() {
                   <TableCell className="whitespace-nowrap px-4 py-3">{member.phone}</TableCell>
                   <TableCell className="whitespace-nowrap px-4 py-3">{member.email}</TableCell>
                   <TableCell className="whitespace-nowrap px-4 py-3 border-l">{member.cpy_client ? "✓" : "✗"}</TableCell>
-                  <TableCell className={`whitespace-nowrap px-4 py-3 border-l ${member.piedras_day_member ? "bg-amber-100" : ""}`}>
-                    {member.piedras_day_member ? (
-                      <span className="inline-flex items-center gap-1 bg-amber-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">
-                        <Store className="h-3 w-3" />
-                        Sí
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">No</span>
-                    )}
-                  </TableCell>
-                  <TableCell className={`whitespace-nowrap px-4 py-3 font-medium text-amber-700 ${hasComercio ? "bg-amber-50" : ""}`}>{member.comercios?.[0]?.slug}</TableCell>
-                  <TableCell className={`whitespace-nowrap px-4 py-3 ${hasComercio ? "bg-amber-50" : ""}`}>
-                    {member.comercios?.[0]?.active === true && <span className="text-green-600 font-medium">Activo</span>}
-                    {member.comercios?.[0]?.active === false && <span className="text-red-600 font-medium">Inactivo</span>}
-                  </TableCell>
-                  <TableCell className={`whitespace-nowrap px-4 py-3 max-w-48 truncate ${hasComercio ? "bg-amber-50" : ""}`}>{member.comercios?.[0]?.display_address}</TableCell>
                 </TableRow>
               );
             })
