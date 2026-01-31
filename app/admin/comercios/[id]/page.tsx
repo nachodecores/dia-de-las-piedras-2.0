@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Star } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 
@@ -30,34 +30,54 @@ type Comercio = {
   } | null;
 };
 
+type Discount = {
+  id: string;
+  comercio_id: string;
+  title: string;
+  description: string | null;
+  active: boolean;
+  featured: boolean;
+};
+
 export default function EditComercioPage() {
   const params = useParams();
   const router = useRouter();
   const comercioId = params.id as string;
 
   const [comercio, setComercio] = useState<Comercio | null>(null);
+  const [discounts, setDiscounts] = useState<Discount[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [newDiscount, setNewDiscount] = useState({ title: "", description: "" });
+  const [addingDiscount, setAddingDiscount] = useState(false);
 
-  useEffect(() => {
-    const fetchComercio = async () => {
-      const { data, error } = await supabase
+  const fetchData = async () => {
+    const [comercioRes, discountsRes] = await Promise.all([
+      supabase
         .from("comercios")
         .select("*, members(business_name, trade_name, member_number)")
         .eq("id", comercioId)
-        .single();
+        .single(),
+      supabase
+        .from("discounts")
+        .select("*")
+        .eq("comercio_id", comercioId)
+        .order("created_at", { ascending: false }),
+    ]);
 
-      if (error || !data) {
-        toast.error("Comercio no encontrado");
-        router.push("/admin/comercios");
-        return;
-      }
+    if (comercioRes.error || !comercioRes.data) {
+      toast.error("Comercio no encontrado");
+      router.push("/admin/comercios");
+      return;
+    }
 
-      setComercio(data);
-      setLoading(false);
-    };
+    setComercio(comercioRes.data);
+    setDiscounts(discountsRes.data || []);
+    setLoading(false);
+  };
 
-    fetchComercio();
+  useEffect(() => {
+    fetchData();
   }, [comercioId, router]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -99,7 +119,62 @@ export default function EditComercioPage() {
     }
 
     toast.success("Comercio actualizado correctamente");
-    router.push("/admin/comercios");
+    setSaving(false);
+  };
+
+  const handleAddDiscount = async () => {
+    if (!newDiscount.title.trim()) {
+      toast.error("El título es obligatorio");
+      return;
+    }
+
+    setAddingDiscount(true);
+    const { error } = await supabase.from("discounts").insert({
+      comercio_id: comercioId,
+      title: newDiscount.title,
+      description: newDiscount.description || null,
+      active: true,
+      featured: false,
+    });
+
+    if (error) {
+      toast.error("Error al crear descuento", { description: error.message });
+      setAddingDiscount(false);
+      return;
+    }
+
+    toast.success("Descuento creado");
+    setNewDiscount({ title: "", description: "" });
+    setAddingDiscount(false);
+    fetchData();
+  };
+
+  const handleToggleDiscount = async (discount: Discount, field: "active" | "featured") => {
+    const { error } = await supabase
+      .from("discounts")
+      .update({ [field]: !discount[field] })
+      .eq("id", discount.id);
+
+    if (error) {
+      toast.error("Error al actualizar descuento");
+      return;
+    }
+
+    fetchData();
+  };
+
+  const handleDeleteDiscount = async (discountId: string) => {
+    if (!confirm("¿Eliminar este descuento?")) return;
+
+    const { error } = await supabase.from("discounts").delete().eq("id", discountId);
+
+    if (error) {
+      toast.error("Error al eliminar descuento");
+      return;
+    }
+
+    toast.success("Descuento eliminado");
+    fetchData();
   };
 
   if (loading) {
@@ -222,17 +297,99 @@ export default function EditComercioPage() {
           </div>
         </div>
 
-        <div className="flex gap-4">
-          <Button type="submit" disabled={saving}>
-            {saving ? "Guardando..." : "Guardar Cambios"}
-          </Button>
-          <Link href="/admin/comercios">
-            <Button type="button" variant="outline">
-              Cancelar
-            </Button>
-          </Link>
-        </div>
+        <Button type="submit" disabled={saving}>
+          {saving ? "Guardando..." : "Guardar Cambios"}
+        </Button>
       </form>
+
+      <div className="border-t pt-6 space-y-4">
+        <h3 className="font-medium text-lg">Descuentos</h3>
+
+        <div className="space-y-3">
+          {discounts.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No hay descuentos registrados</p>
+          ) : (
+            discounts.map((discount) => (
+              <div
+                key={discount.id}
+                className={`flex items-center justify-between p-3 border rounded-lg ${
+                  !discount.active ? "opacity-50 bg-muted/50" : ""
+                }`}
+              >
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{discount.title}</span>
+                    {discount.featured && <Star className="h-4 w-4 text-amber-500 fill-amber-500" />}
+                  </div>
+                  {discount.description && (
+                    <p className="text-sm text-muted-foreground">{discount.description}</p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant={discount.featured ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleToggleDiscount(discount, "featured")}
+                    title={discount.featured ? "Quitar destacado" : "Destacar"}
+                  >
+                    <Star className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={discount.active ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleToggleDiscount(discount, "active")}
+                  >
+                    {discount.active ? "Activo" : "Inactivo"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDeleteDiscount(discount.id)}
+                  >
+                    <Trash2 className="h-3 w-3 text-destructive" />
+                  </Button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        <div className="border rounded-lg p-4 space-y-3">
+          <h4 className="font-medium text-sm">Agregar Descuento</h4>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label htmlFor="discount_title" className="text-xs">Título *</Label>
+              <Input
+                id="discount_title"
+                placeholder="20% de descuento"
+                value={newDiscount.title}
+                onChange={(e) => setNewDiscount({ ...newDiscount, title: e.target.value })}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="discount_description" className="text-xs">Descripción</Label>
+              <Input
+                id="discount_description"
+                placeholder="En todos los productos"
+                value={newDiscount.description}
+                onChange={(e) => setNewDiscount({ ...newDiscount, description: e.target.value })}
+              />
+            </div>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            onClick={handleAddDiscount}
+            disabled={addingDiscount || !newDiscount.title.trim()}
+          >
+            <Plus className="h-3 w-3 mr-1" />
+            {addingDiscount ? "Agregando..." : "Agregar"}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
