@@ -49,6 +49,7 @@ function ComercioContent() {
   const [participantWhatsapp, setParticipantWhatsapp] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [ticketNumber, setTicketNumber] = useState<number | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -118,12 +119,16 @@ function ComercioContent() {
       return;
     }
 
-    const { error: insertError } = await supabase.from("raffle_participants").insert({
-      raffle_id: activeRaffle.id,
-      comercio_id: comercio?.id,
-      name: participantName.trim(),
-      whatsapp: participantWhatsapp.trim(),
-    });
+    const { data: insertedData, error: insertError } = await supabase
+      .from("raffle_participants")
+      .insert({
+        raffle_id: activeRaffle.id,
+        comercio_id: comercio?.id,
+        name: participantName.trim(),
+        whatsapp: participantWhatsapp.trim(),
+      })
+      .select("ticket_number")
+      .single();
 
     if (insertError) {
       setError("Error al registrar participación. Intenta nuevamente.");
@@ -131,6 +136,7 @@ function ComercioContent() {
       return;
     }
 
+    setTicketNumber(insertedData.ticket_number);
     setSubmitted(true);
     setSubmitting(false);
   };
@@ -177,6 +183,9 @@ function ComercioContent() {
               <div className="bg-white/20 rounded-lg p-6 text-center">
                 <Check className="h-12 w-12 mx-auto mb-3" />
                 <p className="text-lg font-semibold">¡Participación registrada!</p>
+                {ticketNumber && (
+                  <p className="text-3xl font-bold mt-2">#{ticketNumber}</p>
+                )}
                 <p className="text-sm opacity-90 mt-1">Buena suerte en el sorteo</p>
               </div>
             ) : (

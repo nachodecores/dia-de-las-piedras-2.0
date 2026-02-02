@@ -9,6 +9,7 @@ import Link from "next/link";
 
 type Participant = {
   id: string;
+  ticket_number: number;
   name: string;
   whatsapp: string;
   comercio_id: string | null;
@@ -38,7 +39,7 @@ export default function SorteoParticipantsPage() {
           .from("raffle_participants")
           .select("*, comercios(fantasy_name, slug)")
           .eq("raffle_id", raffleId)
-          .order("created_at", { ascending: false }),
+          .order("ticket_number", { ascending: true }),
       ]);
 
       setRaffle(raffleRes.data);
@@ -81,7 +82,7 @@ export default function SorteoParticipantsPage() {
         <p className="text-muted-foreground">No hay participantes aún</p>
       ) : (
         <div className="border rounded-lg divide-y">
-          {participants.map((p, index) => (
+          {participants.map((p) => (
             <div key={p.id} className="p-4 flex items-center justify-between">
               <div>
                 <div className="font-medium">{p.name}</div>
@@ -92,8 +93,8 @@ export default function SorteoParticipantsPage() {
                   </div>
                 )}
               </div>
-              <div className="text-sm text-muted-foreground">
-                #{participants.length - index}
+              <div className="text-lg font-mono font-bold">
+                #{p.ticket_number}
               </div>
             </div>
           ))}
