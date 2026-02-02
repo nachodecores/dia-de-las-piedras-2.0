@@ -42,6 +42,7 @@ export default function SorteosPage() {
   }, []);
 
   const handleAddRaffle = async () => {
+    if (addingRaffle) return;
     if (!newRaffleName.trim()) {
       toast.error("El nombre es obligatorio");
       return;

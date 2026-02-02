@@ -108,7 +108,7 @@ function ComercioContent() {
 
   const handleSubmitParticipation = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeRaffle) return;
+    if (!activeRaffle || submitting) return;
 
     setError("");
     setSubmitting(true);

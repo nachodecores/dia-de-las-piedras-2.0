@@ -73,6 +73,7 @@ export default function SociosPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const fetchData = async () => {
     const [membersRes, segmentsRes] = await Promise.all([
@@ -93,6 +94,9 @@ export default function SociosPage() {
 
   const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (saving) return;
+    setSaving(true);
+
     const formData = new FormData(e.currentTarget);
 
     const newMember = {
@@ -125,17 +129,20 @@ export default function SociosPage() {
 
     if (memberError) {
       toast.error("Error al crear socio", { description: memberError.message });
+      setSaving(false);
       return;
     }
 
     toast.success("Socio creado correctamente");
+    setSaving(false);
     setCreateOpen(false);
     fetchData();
   };
 
   const handleEdit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!editingMember) return;
+    if (!editingMember || saving) return;
+    setSaving(true);
 
     const formData = new FormData(e.currentTarget);
 
@@ -172,10 +179,12 @@ export default function SociosPage() {
 
     if (memberError) {
       toast.error("Error al actualizar socio", { description: memberError.message });
+      setSaving(false);
       return;
     }
 
     toast.success("Socio actualizado correctamente");
+    setSaving(false);
     setEditOpen(false);
     setEditingMember(null);
     fetchData();
@@ -190,7 +199,7 @@ export default function SociosPage() {
     return <div>Cargando...</div>;
   }
 
-  const MemberForm = ({ onSubmit, member, isEdit }: { onSubmit: (e: React.FormEvent<HTMLFormElement>) => void; member?: Member | null; isEdit?: boolean }) => {
+  const MemberForm = ({ onSubmit, member, isEdit, saving: isSaving }: { onSubmit: (e: React.FormEvent<HTMLFormElement>) => void; member?: Member | null; isEdit?: boolean; saving?: boolean }) => {
     const hasComercio = !!member?.comercios;
 
     return (
@@ -352,8 +361,8 @@ export default function SociosPage() {
           </div>
         </div>
 
-        <Button type="submit" className="w-full">
-          {isEdit ? "Guardar Cambios" : "Crear Socio"}
+        <Button type="submit" className="w-full" disabled={isSaving}>
+          {isSaving ? "Guardando..." : isEdit ? "Guardar Cambios" : "Crear Socio"}
         </Button>
       </form>
     );
@@ -374,7 +383,7 @@ export default function SociosPage() {
             <DialogHeader>
               <DialogTitle>Crear Nuevo Socio</DialogTitle>
             </DialogHeader>
-            <MemberForm onSubmit={handleCreate} />
+            <MemberForm onSubmit={handleCreate} saving={saving} />
           </DialogContent>
         </Dialog>
       </div>
@@ -384,7 +393,7 @@ export default function SociosPage() {
           <DialogHeader>
             <DialogTitle>Editar Socio</DialogTitle>
           </DialogHeader>
-          <MemberForm onSubmit={handleEdit} member={editingMember} isEdit />
+          <MemberForm onSubmit={handleEdit} member={editingMember} isEdit saving={saving} />
         </DialogContent>
       </Dialog>
 

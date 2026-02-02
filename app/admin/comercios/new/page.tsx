@@ -45,6 +45,7 @@ function NewComercioForm() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (saving) return;
     setSaving(true);
 
     const formData = new FormData(e.currentTarget);

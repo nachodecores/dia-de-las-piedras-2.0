@@ -82,7 +82,7 @@ export default function EditComercioPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!comercio) return;
+    if (!comercio || saving) return;
     setSaving(true);
 
     const formData = new FormData(e.currentTarget);
@@ -123,6 +123,7 @@ export default function EditComercioPage() {
   };
 
   const handleAddDiscount = async () => {
+    if (addingDiscount) return;
     if (!newDiscount.title.trim()) {
       toast.error("El título es obligatorio");
       return;
