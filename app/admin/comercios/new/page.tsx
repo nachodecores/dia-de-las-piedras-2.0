@@ -25,6 +25,13 @@ function NewComercioForm() {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [searchMember, setSearchMember] = useState("");
+
+  const filteredMembers = members.filter((m) =>
+    m.trade_name?.toLowerCase().includes(searchMember.toLowerCase()) ||
+    m.business_name?.toLowerCase().includes(searchMember.toLowerCase()) ||
+    m.member_number?.includes(searchMember)
+  );
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -95,6 +102,12 @@ function NewComercioForm() {
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="member_id">Socio *</Label>
+            <Input
+              placeholder="Buscar socio..."
+              value={searchMember}
+              onChange={(e) => setSearchMember(e.target.value)}
+              className="mb-2"
+            />
             <select
               id="member_id"
               name="member_id"
@@ -103,9 +116,11 @@ function NewComercioForm() {
               className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             >
               <option value="">Seleccionar socio...</option>
-              {members.map((member) => (
+              {filteredMembers.map((member) => (
                 <option key={member.id} value={member.id}>
-                  {member.trade_name || member.business_name} ({member.member_number})
+                  {member.trade_name 
+                    ? `${member.trade_name} - ${member.business_name}` 
+                    : member.business_name} ({member.member_number})
                 </option>
               ))}
             </select>

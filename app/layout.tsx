@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Montserrat, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Header } from "@/components/ui/header";
+import { NavbarFooter } from "@/components/ui/navbar-footer";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
   subsets: ["latin"],
 });
 
@@ -27,9 +29,13 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+          className={`${montserrat.variable} ${geistMono.variable} font-sans antialiased`}
         >
-          {children}
+          <Header />
+          <main className="pt-16 pb-16">
+            {children}
+          </main>
+          <NavbarFooter />
         </body>
       </html>
     </ClerkProvider>
