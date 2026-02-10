@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Gift, Trophy } from "lucide-react";
+import { formatDateOnly } from "@/lib/utils";
 
 type Prize = {
   id: string;
   name: string;
-  position: number;
+  created_at?: string;
 };
 
 type ActiveRaffle = {
@@ -25,7 +26,7 @@ export default function SorteosPage() {
     const fetchActiveRaffle = async () => {
       const { data } = await supabase
         .from("raffles")
-        .select("id, name, raffle_date, raffle_prizes(id, name, position)")
+        .select("id, name, raffle_date, raffle_prizes(id, name, created_at)")
         .eq("active", true)
         .order("created_at", { ascending: false })
         .limit(1)
@@ -38,7 +39,8 @@ export default function SorteosPage() {
       }
 
       const prizes = (data.raffle_prizes || []).sort(
-        (a: Prize, b: Prize) => a.position - b.position
+        (a: Prize, b: Prize) =>
+          new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime()
       );
       setRaffle({
         id: data.id,
@@ -82,7 +84,7 @@ export default function SorteosPage() {
         <h2 className="text-xl font-bold">{raffle.name}</h2>
         {raffle.raffle_date && (
           <p className="text-sm text-muted-foreground mt-1">
-            {new Date(raffle.raffle_date).toLocaleDateString("es-UY", {
+            {formatDateOnly(raffle.raffle_date, {
               day: "numeric",
               month: "long",
               year: "numeric",
@@ -97,13 +99,13 @@ export default function SorteosPage() {
               Premios
             </div>
             <ol className="space-y-2">
-              {raffle.prizes.map((prize) => (
+              {raffle.prizes.map((prize, index) => (
                 <li
                   key={prize.id}
                   className="flex items-center gap-3 py-2 px-3 rounded-md bg-muted/50"
                 >
                   <span className="font-mono text-sm font-semibold text-primary">
-                    #{prize.position}
+                    #{index + 1}
                   </span>
                   <span>{prize.name}</span>
                 </li>

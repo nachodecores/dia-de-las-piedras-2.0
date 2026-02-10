@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import { Printer } from "lucide-react";
 
@@ -10,9 +11,6 @@ type Comercio = {
   slug: string;
   secret_code: string;
 };
-
-const CARTEL_TEXT =
-  "Conocé los descuentos disponibles en este local y participá del sorteo del mes.";
 
 export default function DevCartelPage() {
   const isDev = process.env.NODE_ENV === "development";
@@ -49,7 +47,7 @@ export default function DevCartelPage() {
     }
     let cancelled = false;
     import("qrcode").then((mod: { default: { toDataURL: (url: string, opts?: { width?: number; margin?: number }) => Promise<string> } }) => {
-      mod.default.toDataURL(participationUrl, { width: 220, margin: 1 }).then((url) => {
+      mod.default.toDataURL(participationUrl, { width: 400, margin: 1 }).then((url) => {
         if (!cancelled) setQrDataUrl(url);
       });
     });
@@ -115,7 +113,7 @@ export default function DevCartelPage() {
       {selectedComercio && (
         <div
           id="cartel-print"
-          className="mx-auto mt-8 w-[210mm] max-w-full print:mt-0 print:shadow-none print:border print:border-gray-300"
+          className="mx-auto mt-8 w-[148mm] h-[210mm] max-w-full print:mt-0 print:shadow-none print:border print:border-gray-300"
           style={{
             boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
             border: "1px solid #e5e7eb",
@@ -125,47 +123,48 @@ export default function DevCartelPage() {
           }}
         >
           <div
+            className="font-sans"
             style={{
               border: "2px solid #d1d5db",
               borderRadius: "8px",
               padding: "28px",
               background: "#fafafa",
+              minHeight: "100%",
             }}
           >
-            <h2
-              className="text-2xl font-bold text-center text-gray-900 mb-6"
-              style={{ fontFamily: "sans-serif" }}
-            >
-              {selectedComercio.fantasy_name || selectedComercio.slug}
-            </h2>
-
-            <p
-              className="text-center text-gray-700 mb-8 text-lg leading-snug max-w-md mx-auto"
-              style={{ fontFamily: "sans-serif" }}
-            >
-              {CARTEL_TEXT}
-            </p>
+            <div className="flex justify-center mb-6">
+              <Image
+                src="/isotipoddlp.svg"
+                alt="Día de Las Piedras"
+                width={120}
+                height={120}
+                priority
+              />
+            </div>
 
             <div className="flex justify-center">
               {qrDataUrl ? (
                 <img
                   src={qrDataUrl}
                   alt="QR participación"
-                  width={220}
-                  height={220}
+                  width={400}
+                  height={400}
                   className="rounded-md bg-white p-2 border border-gray-200"
                 />
               ) : (
                 <div
-                  className="w-[220px] h-[220px] rounded-md bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400 text-sm"
+                  className="w-[400px] h-[400px] rounded-md bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400 text-sm"
                 >
                   Cargando QR…
                 </div>
               )}
             </div>
 
-            <p className="text-center text-xs text-gray-500 mt-6" style={{ fontFamily: "sans-serif" }}>
-              Escaneá el QR para participar
+            <p className="text-center text-sm text-gray-700 mt-6">
+              Escaneá y participá del sorteo
+            </p>
+            <p className="text-center text-[10px] text-gray-500 mt-1">
+              sólo escaneando desde el local
             </p>
           </div>
         </div>
@@ -182,7 +181,8 @@ export default function DevCartelPage() {
                 left: 0;
                 top: 0;
                 width: 100%;
-                max-width: 210mm;
+                max-width: 148mm;
+                height: 210mm;
                 margin: 0;
                 box-shadow: none;
                 border-radius: 0;

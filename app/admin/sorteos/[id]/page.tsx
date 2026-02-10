@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { ArrowLeft, Users, Gift, Trophy, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { formatDateOnly } from "@/lib/utils";
 
 type Participant = {
   id: string;
@@ -23,7 +24,6 @@ type Prize = {
   id: string;
   name: string;
   description: string | null;
-  position: number;
   winner_participant_id: string | null;
   winner?: Participant | null;
 };
@@ -44,6 +44,7 @@ export default function SorteoParticipantsPage() {
   const [prizes, setPrizes] = useState<Prize[]>([]);
   const [loading, setLoading] = useState(true);
   const [newPrizeName, setNewPrizeName] = useState("");
+  const [newPrizeDescription, setNewPrizeDescription] = useState("");
   const [addingPrize, setAddingPrize] = useState(false);
 
   const fetchData = async () => {
@@ -58,7 +59,7 @@ export default function SorteoParticipantsPage() {
         .from("raffle_prizes")
         .select("*")
         .eq("raffle_id", raffleId)
-        .order("position", { ascending: true }),
+        .order("created_at", { ascending: true }),
     ]);
 
     setRaffle(raffleRes.data);
@@ -75,12 +76,12 @@ export default function SorteoParticipantsPage() {
     if (addingPrize || !newPrizeName.trim()) return;
     setAddingPrize(true);
 
-    const nextPosition = prizes.length + 1;
+    const description = newPrizeDescription.trim() || null;
 
     const { error } = await supabase.from("raffle_prizes").insert({
       raffle_id: raffleId,
       name: newPrizeName,
-      position: nextPosition,
+      description,
     });
 
     if (error) {
@@ -91,6 +92,7 @@ export default function SorteoParticipantsPage() {
 
     toast.success("Premio agregado");
     setNewPrizeName("");
+    setNewPrizeDescription("");
     setAddingPrize(false);
     fetchData();
   };
@@ -133,7 +135,7 @@ export default function SorteoParticipantsPage() {
           <div className="flex items-center gap-4 mt-1">
             {raffle.raffle_date && (
               <span className="text-sm text-muted-foreground">
-                {new Date(raffle.raffle_date).toLocaleDateString()}
+                {formatDateOnly(raffle.raffle_date)}
               </span>
             )}
             <span className="text-sm text-muted-foreground flex items-center gap-1">
@@ -151,12 +153,18 @@ export default function SorteoParticipantsPage() {
           <h2 className="text-lg font-semibold">Premios</h2>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           <Input
             placeholder="Nombre del premio"
             value={newPrizeName}
             onChange={(e) => setNewPrizeName(e.target.value)}
-            className="flex-1"
+            className="flex-1 min-w-[180px]"
+          />
+          <Input
+            placeholder="Descripción (opcional)"
+            value={newPrizeDescription}
+            onChange={(e) => setNewPrizeDescription(e.target.value)}
+            className="flex-1 min-w-[180px] text-sm"
           />
           <Button
             onClick={handleAddPrize}
@@ -171,16 +179,23 @@ export default function SorteoParticipantsPage() {
           <p className="text-sm text-muted-foreground">No hay premios configurados</p>
         ) : (
           <div className="space-y-2">
-            {prizes.map((prize) => (
+            {prizes.map((prize, index) => (
               <div
                 key={prize.id}
                 className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
               >
                 <div className="flex items-center gap-3">
                   <span className="font-mono text-sm font-bold text-muted-foreground">
-                    #{prize.position}
+                    #{index + 1}
                   </span>
-                  <span className="font-medium">{prize.name}</span>
+                  <div>
+                    <div className="font-medium">{prize.name}</div>
+                    {prize.description && (
+                      <div className="text-xs text-muted-foreground mt-0.5">
+                        {prize.description}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <Button
                   variant="ghost"

@@ -6,11 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Trash2, Users, Gift, Trophy } from "lucide-react";
 import { toast } from "sonner";
+import { formatDateOnly } from "@/lib/utils";
 
 type Prize = {
   id: string;
   name: string;
-  position: number;
+  created_at?: string;
 };
 
 type Raffle = {
@@ -29,18 +30,22 @@ export default function SorteosPage() {
   const [newRaffleDate, setNewRaffleDate] = useState("");
   const [addingRaffle, setAddingRaffle] = useState(false);
   const [newPrizeNames, setNewPrizeNames] = useState<Record<string, string>>({});
+  const [newPrizeDescriptions, setNewPrizeDescriptions] = useState<Record<string, string>>({});
   const [addingPrize, setAddingPrize] = useState<string | null>(null);
 
   const fetchRaffles = async () => {
     const { data } = await supabase
       .from("raffles")
-      .select("*, raffle_participants(id), raffle_prizes(id, name, position)")
+      .select("*, raffle_participants(id), raffle_prizes(id, name, created_at)")
       .order("created_at", { ascending: false });
 
     const rafflesWithData = (data || []).map((r: any) => ({
       ...r,
       participant_count: r.raffle_participants?.length || 0,
-      prizes: (r.raffle_prizes || []).sort((a: Prize, b: Prize) => a.position - b.position),
+      prizes: (r.raffle_prizes || []).sort(
+        (a: Prize, b: Prize) =>
+          new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime()
+      ),
       raffle_participants: undefined,
       raffle_prizes: undefined,
     }));
@@ -111,14 +116,15 @@ export default function SorteosPage() {
     const prizeName = newPrizeNames[raffleId]?.trim();
     if (!prizeName || addingPrize === raffleId) return;
 
+    const prizeDescription = newPrizeDescriptions[raffleId]?.trim() || null;
+
     setAddingPrize(raffleId);
     const raffle = raffles.find((r) => r.id === raffleId);
-    const nextPosition = (raffle?.prizes.length || 0) + 1;
 
     const { error } = await supabase.from("raffle_prizes").insert({
       raffle_id: raffleId,
       name: prizeName,
-      position: nextPosition,
+      description: prizeDescription,
     });
 
     if (error) {
@@ -129,6 +135,7 @@ export default function SorteosPage() {
 
     toast.success("Premio agregado");
     setNewPrizeNames((prev) => ({ ...prev, [raffleId]: "" }));
+    setNewPrizeDescriptions((prev) => ({ ...prev, [raffleId]: "" }));
     setAddingPrize(null);
     fetchRaffles();
   };
@@ -195,7 +202,7 @@ export default function SorteosPage() {
                   <span className="font-medium">{raffle.name}</span>
                   {raffle.raffle_date && (
                     <span className="text-xs text-muted-foreground">
-                      {new Date(raffle.raffle_date).toLocaleDateString()}
+                      {formatDateOnly(raffle.raffle_date)}
                     </span>
                   )}
                   <span className="inline-flex items-center gap-1 text-xs text-primary bg-primary/10 px-2 py-1 rounded">
@@ -231,13 +238,13 @@ export default function SorteosPage() {
                 </div>
                 {raffle.prizes.length > 0 && (
                   <div className="space-y-1">
-                    {raffle.prizes.map((prize) => (
+                    {raffle.prizes.map((prize, index) => (
                       <div
                         key={prize.id}
                         className="flex items-center justify-between py-1 px-2 bg-muted/30 rounded text-sm"
                       >
                         <span>
-                          <span className="font-mono text-xs text-muted-foreground mr-2">#{prize.position}</span>
+                          <span className="font-mono text-xs text-muted-foreground mr-2">#{index + 1}</span>
                           {prize.name}
                         </span>
                         <Button
@@ -252,14 +259,25 @@ export default function SorteosPage() {
                     ))}
                   </div>
                 )}
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Input
                     placeholder="Nombre del premio"
                     value={newPrizeNames[raffle.id] || ""}
                     onChange={(e) =>
                       setNewPrizeNames((prev) => ({ ...prev, [raffle.id]: e.target.value }))
                     }
-                    className="flex-1 h-8 text-sm"
+                    className="flex-1 h-8 text-sm min-w-[180px]"
+                  />
+                  <Input
+                    placeholder="Descripción (opcional)"
+                    value={newPrizeDescriptions[raffle.id] || ""}
+                    onChange={(e) =>
+                      setNewPrizeDescriptions((prev) => ({
+                        ...prev,
+                        [raffle.id]: e.target.value,
+                      }))
+                    }
+                    className="flex-1 h-8 text-xs min-w-[180px]"
                   />
                   <Button
                     size="sm"
