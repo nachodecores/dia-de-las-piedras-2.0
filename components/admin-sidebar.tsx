@@ -1,6 +1,6 @@
 "use client";
 
-import { Users, Store, Gift, Handshake } from "lucide-react";
+import { Users, Store, Gift, Handshake, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -23,12 +23,12 @@ const navItems = [
     icon: Users,
   },
   {
-    title: "Comercios",
+    title: "DDLP - Comercios adheridos",
     url: "/admin/comercios",
     icon: Store,
   },
   {
-    title: "Sorteos",
+    title: "DDLP - Sorteos",
     url: "/admin/sorteos",
     icon: Gift,
   },
@@ -36,6 +36,11 @@ const navItems = [
     title: "Convenios",
     url: "/admin/convenios",
     icon: Handshake,
+  },
+  {
+    title: "Dashboard",
+    url: "/admin/dashboard",
+    icon: LayoutDashboard,
   },
 ];
 

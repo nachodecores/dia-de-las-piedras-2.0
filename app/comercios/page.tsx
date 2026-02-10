@@ -49,36 +49,60 @@ export default function ComerciosPublicPage() {
           <p className="text-center text-gray-500">No hay comercios disponibles</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {comercios.map((comercio) => (
-              <Link
-                key={comercio.id}
-                href={`/comercio/${comercio.slug}`}
-                className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow overflow-hidden"
-              >
-                <div className="aspect-video bg-gray-100 flex items-center justify-center">
-                  {comercio.logo_url ? (
-                    <img
-                      src={comercio.logo_url}
-                      alt={comercio.fantasy_name || comercio.slug}
-                      className="max-h-full max-w-full object-contain p-4"
-                    />
-                  ) : (
-                    <span className="text-4xl font-bold text-gray-400">
-                      {(comercio.fantasy_name || comercio.slug).charAt(0).toUpperCase()}
-                    </span>
-                  )}
-                </div>
-                <div className="p-4">
-                  <h2 className="font-semibold text-lg">{comercio.fantasy_name || comercio.slug}</h2>
-                  {comercio.short_description && (
-                    <p className="text-gray-600 text-sm mt-1 line-clamp-2">{comercio.short_description}</p>
-                  )}
-                  {comercio.display_address && (
-                    <p className="text-gray-500 text-xs mt-2">{comercio.display_address}</p>
-                  )}
-                </div>
-              </Link>
-            ))}
+            {comercios.map((comercio) => {
+              const slug = comercio.slug?.trim();
+              const href = slug ? `/comercio/${encodeURIComponent(slug)}` : "#";
+              const isClickable = !!slug;
+
+              const cardContent = (
+                <>
+                  <div className="aspect-video bg-gray-100 flex items-center justify-center">
+                    {comercio.logo_url ? (
+                      <img
+                        src={comercio.logo_url}
+                        alt={comercio.fantasy_name || comercio.slug || ""}
+                        className="max-h-full max-w-full object-contain p-4"
+                      />
+                    ) : (
+                      <span className="text-4xl font-bold text-gray-400">
+                        {(comercio.fantasy_name || comercio.slug || "").charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    <h2 className="font-semibold text-lg">{comercio.fantasy_name || comercio.slug}</h2>
+                    {comercio.short_description && (
+                      <p className="text-gray-600 text-sm mt-1 line-clamp-2">{comercio.short_description}</p>
+                    )}
+                    {comercio.display_address && (
+                      <p className="text-gray-500 text-xs mt-2">{comercio.display_address}</p>
+                    )}
+                  </div>
+                </>
+              );
+
+              if (!isClickable) {
+                return (
+                  <div
+                    key={comercio.id}
+                    className="bg-white rounded-lg shadow-sm border overflow-hidden opacity-75"
+                  >
+                    {cardContent}
+                  </div>
+                );
+              }
+
+              return (
+                <Link
+                  key={comercio.id}
+                  href={href}
+                  prefetch={false}
+                  className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow overflow-hidden"
+                >
+                  {cardContent}
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>

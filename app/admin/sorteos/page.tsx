@@ -4,36 +4,48 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2, Copy, Users, Gift } from "lucide-react";
+import { Plus, Trash2, Copy, Users, Gift, Trophy } from "lucide-react";
 import { toast } from "sonner";
-import Link from "next/link";
+
+type Prize = {
+  id: string;
+  name: string;
+  position: number;
+};
 
 type Raffle = {
   id: string;
   name: string;
+  raffle_date: string | null;
   secret_code: string;
   active: boolean;
   participant_count?: number;
+  prizes: Prize[];
 };
 
 export default function SorteosPage() {
   const [raffles, setRaffles] = useState<Raffle[]>([]);
   const [loading, setLoading] = useState(true);
   const [newRaffleName, setNewRaffleName] = useState("");
+  const [newRaffleDate, setNewRaffleDate] = useState("");
   const [addingRaffle, setAddingRaffle] = useState(false);
+  const [newPrizeNames, setNewPrizeNames] = useState<Record<string, string>>({});
+  const [addingPrize, setAddingPrize] = useState<string | null>(null);
 
   const fetchRaffles = async () => {
     const { data } = await supabase
       .from("raffles")
-      .select("*, raffle_participants(id)")
+      .select("*, raffle_participants(id), raffle_prizes(id, name, position)")
       .order("created_at", { ascending: false });
 
-    const rafflesWithCount = (data || []).map((r: any) => ({
+    const rafflesWithData = (data || []).map((r: any) => ({
       ...r,
       participant_count: r.raffle_participants?.length || 0,
+      prizes: (r.raffle_prizes || []).sort((a: Prize, b: Prize) => a.position - b.position),
       raffle_participants: undefined,
+      raffle_prizes: undefined,
     }));
-    setRaffles(rafflesWithCount);
+    setRaffles(rafflesWithData);
     setLoading(false);
   };
 
@@ -51,6 +63,7 @@ export default function SorteosPage() {
     setAddingRaffle(true);
     const { error } = await supabase.from("raffles").insert({
       name: newRaffleName,
+      raffle_date: newRaffleDate || null,
       active: true,
     });
 
@@ -62,6 +75,7 @@ export default function SorteosPage() {
 
     toast.success("Sorteo creado");
     setNewRaffleName("");
+    setNewRaffleDate("");
     setAddingRaffle(false);
     fetchRaffles();
   };
@@ -99,6 +113,44 @@ export default function SorteosPage() {
     toast.success("Código copiado al portapapeles");
   };
 
+  const handleAddPrize = async (raffleId: string) => {
+    const prizeName = newPrizeNames[raffleId]?.trim();
+    if (!prizeName || addingPrize === raffleId) return;
+
+    setAddingPrize(raffleId);
+    const raffle = raffles.find((r) => r.id === raffleId);
+    const nextPosition = (raffle?.prizes.length || 0) + 1;
+
+    const { error } = await supabase.from("raffle_prizes").insert({
+      raffle_id: raffleId,
+      name: prizeName,
+      position: nextPosition,
+    });
+
+    if (error) {
+      toast.error("Error al agregar premio", { description: error.message });
+      setAddingPrize(null);
+      return;
+    }
+
+    toast.success("Premio agregado");
+    setNewPrizeNames((prev) => ({ ...prev, [raffleId]: "" }));
+    setAddingPrize(null);
+    fetchRaffles();
+  };
+
+  const handleDeletePrize = async (prizeId: string) => {
+    const { error } = await supabase.from("raffle_prizes").delete().eq("id", prizeId);
+
+    if (error) {
+      toast.error("Error al eliminar premio");
+      return;
+    }
+
+    toast.success("Premio eliminado");
+    fetchRaffles();
+  };
+
   if (loading) {
     return <div>Cargando...</div>;
   }
@@ -117,6 +169,13 @@ export default function SorteosPage() {
             placeholder="Nombre del sorteo"
             value={newRaffleName}
             onChange={(e) => setNewRaffleName(e.target.value)}
+            className="flex-1"
+          />
+          <Input
+            type="date"
+            value={newRaffleDate}
+            onChange={(e) => setNewRaffleDate(e.target.value)}
+            className="w-40"
           />
           <Button
             onClick={handleAddRaffle}
@@ -140,13 +199,15 @@ export default function SorteosPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <span className="font-medium">{raffle.name}</span>
-                  <Link
-                    href={`/admin/sorteos/${raffle.id}`}
-                    className="inline-flex items-center gap-1 text-xs text-primary bg-primary/10 px-2 py-1 rounded hover:bg-primary/20"
-                  >
+                  {raffle.raffle_date && (
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(raffle.raffle_date).toLocaleDateString()}
+                    </span>
+                  )}
+                  <span className="inline-flex items-center gap-1 text-xs text-primary bg-primary/10 px-2 py-1 rounded">
                     <Users className="h-3 w-3" />
                     {raffle.participant_count} participantes
-                  </Link>
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Button
@@ -167,7 +228,57 @@ export default function SorteosPage() {
                   </Button>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+
+              {/* Sección de Premios */}
+              <div className="border-t pt-3 space-y-2">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <Trophy className="h-4 w-4" />
+                  Premios
+                </div>
+                {raffle.prizes.length > 0 && (
+                  <div className="space-y-1">
+                    {raffle.prizes.map((prize) => (
+                      <div
+                        key={prize.id}
+                        className="flex items-center justify-between py-1 px-2 bg-muted/30 rounded text-sm"
+                      >
+                        <span>
+                          <span className="font-mono text-xs text-muted-foreground mr-2">#{prize.position}</span>
+                          {prize.name}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                          onClick={() => handleDeletePrize(prize.id)}
+                        >
+                          <Trash2 className="h-3 w-3 text-destructive" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Nombre del premio"
+                    value={newPrizeNames[raffle.id] || ""}
+                    onChange={(e) =>
+                      setNewPrizeNames((prev) => ({ ...prev, [raffle.id]: e.target.value }))
+                    }
+                    className="flex-1 h-8 text-sm"
+                  />
+                  <Button
+                    size="sm"
+                    className="h-8"
+                    onClick={() => handleAddPrize(raffle.id)}
+                    disabled={addingPrize === raffle.id || !newPrizeNames[raffle.id]?.trim()}
+                  >
+                    <Plus className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 border-t pt-3">
                 <code className="flex-1 text-sm bg-muted p-2 rounded font-mono select-all">
                   ?code={raffle.secret_code}
                 </code>

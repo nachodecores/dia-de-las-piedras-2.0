@@ -2,7 +2,7 @@ import { AdminSidebar } from "@/components/admin-sidebar";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { Toaster } from "@/components/ui/sonner";
-import { UserButton } from "@clerk/nextjs";
+import { UserArea } from "@/components/user-area";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -14,7 +14,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
           </div>
-          <UserButton />
+          <UserArea />
         </header>
         <main className="flex-1 p-4 min-w-0 overflow-x-auto">{children}</main>
       </SidebarInset>
