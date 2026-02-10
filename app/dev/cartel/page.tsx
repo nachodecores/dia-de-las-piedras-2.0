@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Printer } from "lucide-react";
-import type QRCode from "qrcode";
 
 type Comercio = {
   id: string;
@@ -49,7 +48,7 @@ export default function DevCartelPage() {
       return;
     }
     let cancelled = false;
-    import("qrcode").then((mod: typeof QRCode) => {
+    import("qrcode").then((mod: { default: { toDataURL: (url: string, opts?: { width?: number; margin?: number }) => Promise<string> } }) => {
       mod.default.toDataURL(participationUrl, { width: 220, margin: 1 }).then((url) => {
         if (!cancelled) setQrDataUrl(url);
       });
