@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2, Copy, Users, Gift, Trophy } from "lucide-react";
+import { Plus, Trash2, Users, Gift, Trophy } from "lucide-react";
 import { toast } from "sonner";
 
 type Prize = {
@@ -17,7 +17,6 @@ type Raffle = {
   id: string;
   name: string;
   raffle_date: string | null;
-  secret_code: string;
   active: boolean;
   participant_count?: number;
   prizes: Prize[];
@@ -106,11 +105,6 @@ export default function SorteosPage() {
 
     toast.success("Sorteo eliminado");
     fetchRaffles();
-  };
-
-  const copyRaffleCode = (raffle: Raffle) => {
-    navigator.clipboard.writeText(`?code=${raffle.secret_code}`);
-    toast.success("Código copiado al portapapeles");
   };
 
   const handleAddPrize = async (raffleId: string) => {
@@ -277,23 +271,6 @@ export default function SorteosPage() {
                   </Button>
                 </div>
               </div>
-
-              <div className="flex items-center gap-2 border-t pt-3">
-                <code className="flex-1 text-sm bg-muted p-2 rounded font-mono select-all">
-                  ?code={raffle.secret_code}
-                </code>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => copyRaffleCode(raffle)}
-                >
-                  <Copy className="h-3 w-3" />
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Agregar a cualquier URL de comercio, ej: /comercio/mi-tienda<strong>?code=...</strong>
-              </p>
             </div>
           ))
         )}
