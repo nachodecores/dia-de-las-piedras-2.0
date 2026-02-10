@@ -15,15 +15,14 @@ function formatTicketNumber(ticketNumber: number | string): string {
 export function buildTalonPdf(data: TalonPdfData): jsPDF {
   // Talón horizontal, tamaño ticket (A6 landscape: 148 x 105 mm)
   const doc = new jsPDF({ format: "a6", unit: "mm", orientation: "landscape" });
-  const w = doc.getPageWidth();
-  const h = doc.getPageHeight();
+  const w = 148;
+  const h = 105;
   const centerX = w / 2;
 
   const stubWidth = 18;
   const margin = 8;
   const contentLeft = margin + stubWidth;
   const contentRight = w - margin - stubWidth;
-  const contentW = contentRight - contentLeft;
 
   const ticketStr = formatTicketNumber(data.ticketNumber);
   const gray = 180;
