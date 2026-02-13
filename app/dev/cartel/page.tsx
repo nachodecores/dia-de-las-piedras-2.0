@@ -16,7 +16,11 @@ export default function DevCartelPage() {
   const isDev = process.env.NODE_ENV === "development";
   const [comercios, setComercios] = useState<Comercio[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
+  const [posterSize, setPosterSize] = useState<"A5" | "A6">("A5");
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+
+  const dimensions =
+    posterSize === "A6" ? { width: "105mm", height: "148mm" } : { width: "148mm", height: "210mm" };
 
   useEffect(() => {
     const fetchComercios = async () => {
@@ -99,6 +103,21 @@ export default function DevCartelPage() {
           </select>
         </div>
 
+        <div>
+          <label htmlFor="size" className="block text-sm font-medium text-gray-700 mb-1">
+            Tamaño del cartel
+          </label>
+          <select
+            id="size"
+            value={posterSize}
+            onChange={(e) => setPosterSize(e.target.value as "A5" | "A6")}
+            className="w-full max-w-xs rounded-md border border-input bg-background px-3 py-2 text-sm"
+          >
+            <option value="A5">A5 (148 × 210 mm)</option>
+            <option value="A6">A6 (105 × 148 mm)</option>
+          </select>
+        </div>
+
         <button
           type="button"
           onClick={handlePrint}
@@ -113,8 +132,10 @@ export default function DevCartelPage() {
       {selectedComercio && (
         <div
           id="cartel-print"
-          className="mx-auto mt-8 w-[148mm] h-[210mm] max-w-full print:mt-0 print:shadow-none print:border print:border-gray-300"
+          className="mx-auto mt-8 max-w-full print:mt-0 print:shadow-none print:border print:border-gray-300"
           style={{
+            width: dimensions.width,
+            height: dimensions.height,
             boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
             border: "1px solid #e5e7eb",
             borderRadius: "12px",
@@ -180,9 +201,9 @@ export default function DevCartelPage() {
                 position: absolute;
                 left: 0;
                 top: 0;
-                width: 100%;
-                max-width: 148mm;
-                height: 210mm;
+                width: ${dimensions.width};
+                max-width: ${dimensions.width};
+                height: ${dimensions.height};
                 margin: 0;
                 box-shadow: none;
                 border-radius: 0;
