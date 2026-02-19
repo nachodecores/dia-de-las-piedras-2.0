@@ -114,7 +114,7 @@ export default function SorteosPage() {
         <h1 className="text-2xl font-semibold">Sorteos</h1>
       </div>
 
-      <div className="rounded-lg border bg-card p-5 shadow-sm">
+      <div className="rounded-lg border bg-[#e8f5e9] p-5 shadow-sm">
         <h2 className="text-xl font-bold">
           Sorteo de{" "}
           {raffle.raffle_date
@@ -128,15 +128,15 @@ export default function SorteosPage() {
               {raffle.prizes.map((prize, index) => (
                 <li
                   key={prize.id}
-                  className="flex items-start gap-3 py-2 px-3 rounded-md bg-muted/50"
+                  className="flex items-start gap-3 py-2 px-3 rounded-md bg-muted/50 border border-[#21A85B]"
                 >
                   <span className="font-mono text-sm font-semibold text-primary shrink-0">
                     #{index + 1}
                   </span>
                   <div>
-                    <div className="font-medium">{prize.name}</div>
+                    <div className="text-sm font-medium text-[#21A85B]">{prize.name}</div>
                     {prize.description && (
-                      <p className="text-xs text-muted-foreground mt-0.5">
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
                         {prize.description}
                       </p>
                     )}
