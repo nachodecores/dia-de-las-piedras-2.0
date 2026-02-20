@@ -7,7 +7,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 type MemberRow = {
   id: string;
   segment_id: string | null;
-  segments: { name: string } | null;
+  segments: { name: string } | { name: string }[] | null;
 };
 
 type SegmentCount = {
@@ -42,7 +42,8 @@ export default function DashboardPage() {
 
       const bySegment: Record<string, number> = {};
       (members || []).forEach((m: MemberRow) => {
-        const label = m.segments?.name ?? "Sin segmento";
+        const seg = Array.isArray(m.segments) ? m.segments[0] : m.segments;
+        const label = seg?.name ?? "Sin segmento";
         bySegment[label] = (bySegment[label] ?? 0) + 1;
       });
 
