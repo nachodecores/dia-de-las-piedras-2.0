@@ -15,7 +15,7 @@ type Prize = {
   name: string;
   description?: string | null;
   created_at?: string;
-  raffle_participants?: PrizeWinner | null;
+  raffle_participants?: PrizeWinner | PrizeWinner[] | null;
 };
 
 function getInitials(name: string): string {
@@ -64,8 +64,9 @@ export default function SorteosPage() {
       }
 
       const prizes = (data.raffle_prizes || []).sort(
-        (a: Prize, b: Prize) =>
-          new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime()
+        (a, b) =>
+          new Date((a as Prize).created_at || 0).getTime() -
+          new Date((b as Prize).created_at || 0).getTime()
       );
       setRaffle({
         id: data.id,
@@ -140,12 +141,16 @@ export default function SorteosPage() {
                         {prize.description}
                       </p>
                     )}
-                    {prize.raffle_participants && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Ganador: {getInitials(prize.raffle_participants.name)}{" "}
-                        {maskPhone(prize.raffle_participants.whatsapp)}
-                      </p>
-                    )}
+                    {(() => {
+                      const winner = Array.isArray(prize.raffle_participants)
+                        ? prize.raffle_participants[0]
+                        : prize.raffle_participants;
+                      return winner ? (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Ganador: {getInitials(winner.name)} {maskPhone(winner.whatsapp)}
+                        </p>
+                      ) : null;
+                    })()}
                   </div>
                 </li>
               ))}
