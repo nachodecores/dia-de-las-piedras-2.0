@@ -10,7 +10,6 @@ type Comercio = {
   fantasy_name: string | null;
   logo_url: string | null;
   short_description: string | null;
-  display_address: string | null;
 };
 
 export default function ComerciosPublicPage() {
@@ -21,7 +20,7 @@ export default function ComerciosPublicPage() {
     const fetchComercios = async () => {
       const { data } = await supabase
         .from("comercios")
-        .select("id, slug, fantasy_name, logo_url, short_description, display_address")
+        .select("id, slug, fantasy_name, logo_url, short_description")
         .eq("active", true)
         .order("fantasy_name");
       setComercios(data || []);
@@ -33,20 +32,29 @@ export default function ComerciosPublicPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Cargando...</p>
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{
+          background: "linear-gradient(135deg, #1F2A44 0%, #7f1d1d 50%, #1F2A44 100%)",
+        }}
+      >
+        <p className="text-white">Cargando...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div
+      className="min-h-screen"
+      style={{
+        background: "linear-gradient(135deg, #1F2A44 0%, #7f1d1d 50%, #1F2A44 100%)",
+      }}
+    >
       <div className="max-w-6xl mx-auto px-4 py-12">
-        <h1 className="text-3xl font-bold text-center mb-2">Comercios Día de las Piedras</h1>
-        <p className="text-center text-gray-600 mb-12">Descubrí los comercios adheridos</p>
+        <h1 className="text-xl font-bold text-center mb-12 text-white">Comercios adheridos</h1>
 
         {comercios.length === 0 ? (
-          <p className="text-center text-gray-500">No hay comercios disponibles</p>
+          <p className="text-center text-white/90">No hay comercios disponibles</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {comercios.map((comercio) => {
@@ -73,9 +81,6 @@ export default function ComerciosPublicPage() {
                     <h2 className="font-semibold text-lg">{comercio.fantasy_name || comercio.slug}</h2>
                     {comercio.short_description && (
                       <p className="text-gray-600 text-sm mt-1 line-clamp-2">{comercio.short_description}</p>
-                    )}
-                    {comercio.display_address && (
-                      <p className="text-gray-500 text-xs mt-2">{comercio.display_address}</p>
                     )}
                   </div>
                 </>

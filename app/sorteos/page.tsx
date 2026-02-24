@@ -2,7 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import Link from "next/link";
 import { Gift } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { formatDateOnly } from "@/lib/utils";
 
 type PrizeWinner = {
@@ -44,6 +51,7 @@ type ActiveRaffle = {
 export default function SorteosPage() {
   const [raffle, setRaffle] = useState<ActiveRaffle | null>(null);
   const [loading, setLoading] = useState(true);
+  const [participarModalOpen, setParticiparModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchActiveRaffle = async () => {
@@ -82,23 +90,17 @@ export default function SorteosPage() {
 
   if (loading) {
     return (
-      <div
-        className="min-h-screen px-6 py-8"
-        style={{ background: "linear-gradient(to bottom, #1F2A44, #E6E6E6)" }}
-      >
-        <p className="text-muted-foreground">Cargando...</p>
+      <div className="min-h-screen bg-gradient-to-b from-emerald-600 to-blue-600 px-6 py-8">
+        <p className="text-white">Cargando...</p>
       </div>
     );
   }
 
   if (!raffle) {
     return (
-      <div
-        className="min-h-screen px-6 py-8"
-        style={{ background: "linear-gradient(to bottom, #1F2A44, #E6E6E6)" }}
-      >
-        <h1 className="text-2xl font-semibold mb-4">Sorteos</h1>
-        <p className="text-muted-foreground">
+      <div className="min-h-screen bg-gradient-to-b from-emerald-600 to-blue-600 px-6 py-8">
+        <h1 className="text-2xl font-semibold mb-4 text-white">Sorteos</h1>
+        <p className="text-white/90">
           No hay un sorteo activo en este momento.
         </p>
       </div>
@@ -107,12 +109,11 @@ export default function SorteosPage() {
 
   return (
     <div
-      className="min-h-screen px-6 py-8 max-w-lg mx-auto"
-      style={{ background: "linear-gradient(to bottom, #1F2A44, #E6E6E6)" }}
+      className="min-h-screen px-6 py-8 max-w-lg mx-auto bg-gradient-to-b from-emerald-600 to-blue-600"
     >
       <div className="flex items-center gap-2 mb-2">
-        <Gift className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-semibold">Sorteos</h1>
+        <Gift className="h-6 w-6 text-white" />
+        <h1 className="text-2xl font-semibold text-white">Sorteos</h1>
       </div>
 
       <div className="rounded-lg border bg-[#e8f5e9] p-5 shadow-sm">
@@ -161,11 +162,35 @@ export default function SorteosPage() {
             Premios por definir.
           </p>
         )}
+
+        <button
+          type="button"
+          onClick={() => setParticiparModalOpen(true)}
+          className="mt-6 block w-full rounded-lg bg-[#21A85B] px-4 py-3 text-center text-sm font-bold uppercase tracking-wide text-white shadow-md transition hover:bg-[#1a8649]"
+        >
+          Participá del sorteo
+        </button>
       </div>
 
-      <p className="text-sm text-muted-foreground mt-6 text-center">
-        Participá escaneando el QR en los comercios adheridos.
-      </p>
+      <Dialog open={participarModalOpen} onOpenChange={setParticiparModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Participar del sorteo</DialogTitle>
+          </DialogHeader>
+          <p className="text-muted-foreground">
+            Para participar del sorteo tenés que escanear el código presente en
+            cualquiera de los{" "}
+            <Link
+              href="/comercios"
+              className="font-medium text-primary underline underline-offset-2 hover:no-underline"
+              onClick={() => setParticiparModalOpen(false)}
+            >
+              comercios adheridos
+            </Link>
+            .
+          </p>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

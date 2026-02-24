@@ -6,7 +6,7 @@ export default function Home() {
   return (
     <div>
       <Hero />
-      <div className="flex justify-center px-6 -mt-4 mb-4">
+      <div className="flex justify-center px-6 pt-4 pb-6">
         <ReglamentoModal />
       </div>
       <Sponsors />

@@ -67,19 +67,29 @@ function ComercioContent() {
     fetchData();
   }, [slug]);
 
+  const pageBg = {
+    background: "linear-gradient(135deg, #1F2A44 0%, #7f1d1d 50%, #1F2A44 100%)",
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Cargando...</p>
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={pageBg}
+      >
+        <p className="text-white">Cargando...</p>
       </div>
     );
   }
 
   if (notFound || !comercio) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-        <p className="text-gray-500">Comercio no encontrado</p>
-        <Link href="/comercios" className="text-blue-600 hover:underline">
+      <div
+        className="min-h-screen flex flex-col items-center justify-center gap-4"
+        style={pageBg}
+      >
+        <p className="text-white/90">Comercio no encontrado</p>
+        <Link href="/comercios" className="text-white underline hover:no-underline">
           Ver todos los comercios
         </Link>
       </div>
@@ -87,11 +97,11 @@ function ComercioContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={pageBg}>
       <div className="max-w-2xl mx-auto px-4 py-8">
         <Link
           href="/comercios"
-          className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
+          className="inline-flex items-center gap-2 text-white/90 hover:text-white mb-6"
         >
           <ArrowLeft className="h-4 w-4" />
           Volver a comercios
@@ -122,16 +132,17 @@ function ComercioContent() {
               </div>
             )}
 
-            <div className="flex flex-wrap gap-3 mt-6">
+            <div className="flex flex-wrap gap-3 mt-6 justify-end">
               {comercio.instagram && (
                 <a
                   href={comercio.instagram}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full text-sm hover:opacity-90"
+                  className="inline-flex items-center justify-center gap-2 px-3 py-2 md:px-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full text-sm hover:opacity-90"
+                  aria-label="Instagram"
                 >
-                  <Instagram className="h-4 w-4" />
-                  Instagram
+                  <Instagram className="h-4 w-4 shrink-0" />
+                  <span className="hidden md:inline">Instagram</span>
                 </a>
               )}
               {comercio.facebook && (
@@ -139,10 +150,11 @@ function ComercioContent() {
                   href={comercio.facebook}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-full text-sm hover:opacity-90"
+                  className="inline-flex items-center justify-center gap-2 px-3 py-2 md:px-4 bg-blue-600 text-white rounded-full text-sm hover:opacity-90"
+                  aria-label="Facebook"
                 >
-                  <Facebook className="h-4 w-4" />
-                  Facebook
+                  <Facebook className="h-4 w-4 shrink-0" />
+                  <span className="hidden md:inline">Facebook</span>
                 </a>
               )}
               {comercio.website && (
@@ -150,10 +162,11 @@ function ComercioContent() {
                   href={comercio.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-full text-sm hover:opacity-90"
+                  className="inline-flex items-center justify-center gap-2 px-3 py-2 md:px-4 bg-gray-800 text-white rounded-full text-sm hover:opacity-90"
+                  aria-label="Sitio web"
                 >
-                  <Globe className="h-4 w-4" />
-                  Sitio Web
+                  <Globe className="h-4 w-4 shrink-0" />
+                  <span className="hidden md:inline">Sitio Web</span>
                 </a>
               )}
               {comercio.whatsapp && (
@@ -161,10 +174,11 @@ function ComercioContent() {
                   href={`https://wa.me/${comercio.whatsapp.replace(/\D/g, "")}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-full text-sm hover:opacity-90"
+                  className="inline-flex items-center justify-center gap-2 px-3 py-2 md:px-4 bg-green-500 text-white rounded-full text-sm hover:opacity-90"
+                  aria-label="WhatsApp"
                 >
-                  <MessageCircle className="h-4 w-4" />
-                  WhatsApp
+                  <MessageCircle className="h-4 w-4 shrink-0" />
+                  <span className="hidden md:inline">WhatsApp</span>
                 </a>
               )}
             </div>
@@ -173,7 +187,7 @@ function ComercioContent() {
 
         {discounts.length > 0 && (
           <div className="mt-8">
-            <h2 className="text-xl font-semibold mb-4">Descuentos</h2>
+            <h2 className="text-xl font-semibold mb-4 text-white/90">Descuentos ofrecidos</h2>
             <div className="space-y-3">
               {discounts.map((discount) => (
                 <div
@@ -203,7 +217,16 @@ function ComercioContent() {
 
 export default function ComercioPublicPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><p>Cargando...</p></div>}>
+    <Suspense
+      fallback={
+        <div
+          className="min-h-screen flex items-center justify-center"
+          style={{ background: "linear-gradient(135deg, #1F2A44 0%, #7f1d1d 50%, #1F2A44 100%)" }}
+        >
+          <p className="text-white">Cargando...</p>
+        </div>
+      }
+    >
       <ComercioContent />
     </Suspense>
   );
