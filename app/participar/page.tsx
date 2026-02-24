@@ -6,17 +6,21 @@ import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { Gift, Check, Home, Download } from "lucide-react";
 import { buildTalonPdf, getTalonPdfFilename } from "@/lib/talon-pdf";
+import { isParticipationAllowed } from "@/lib/participation-date";
 
 type Raffle = {
   id: string;
   name: string;
+  raffle_date?: string | null;
 };
 
 function ParticiparContent() {
   const searchParams = useSearchParams();
   const code = searchParams.get("code")?.trim() ?? null;
 
-  const [status, setStatus] = useState<"loading" | "invalid" | "no-raffle" | "ready">("loading");
+  const [status, setStatus] = useState<
+    "loading" | "invalid" | "no-raffle" | "not-today" | "ready"
+  >("loading");
   const [comercioName, setComercioName] = useState<string | null>(null);
   const [comercioSlug, setComercioSlug] = useState<string | null>(null);
   const [raffle, setRaffle] = useState<Raffle | null>(null);
@@ -62,7 +66,7 @@ function ParticiparContent() {
 
       const { data: raffleData } = await supabase
         .from("raffles")
-        .select("id, name")
+        .select("id, name, raffle_date")
         .eq("active", true)
         .order("created_at", { ascending: false })
         .limit(1)
@@ -74,7 +78,9 @@ function ParticiparContent() {
       }
 
       setRaffle(raffleData);
-      setStatus("ready");
+      setStatus(
+        isParticipationAllowed(raffleData.raffle_date ?? null) ? "ready" : "not-today"
+      );
     };
 
     resolve();
@@ -82,7 +88,7 @@ function ParticiparContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!raffle || !comercioId || submitting) return;
+    if (!raffle || !comercioId || !code || submitting) return;
 
     setError("");
     setNameError("");
@@ -104,31 +110,26 @@ function ParticiparContent() {
 
     setSubmitting(true);
 
-    const { data: insertedData, error: insertError } = await supabase
-      .from("raffle_participants")
-      .insert({
-        raffle_id: raffle.id,
-        comercio_id: comercioId,
+    const res = await fetch("/api/participar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        code,
         name,
         whatsapp: participantWhatsapp.trim(),
-      })
-      .select("ticket_number")
-      .single();
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
 
-    if (insertError) {
-      const isDuplicate =
-        insertError.code === "23505" ||
-        (insertError as { code?: string }).code === "23505";
+    if (!res.ok) {
       setError(
-        isDuplicate
-          ? "Este número ya participó en este sorteo desde este comercio. Visitá otro comercio adherido para sumar otra participación."
-          : "Error al registrar participación. Intenta nuevamente."
+        typeof data.error === "string" ? data.error : "Error al registrar participación. Intenta nuevamente."
       );
       setSubmitting(false);
       return;
     }
 
-    setTicketNumber(insertedData.ticket_number);
+    setTicketNumber(data.ticket_number ?? null);
     setSubmitted(true);
     setSubmitting(false);
   };
@@ -179,6 +180,23 @@ function ParticiparContent() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-gray-50 px-4">
         <p className="text-gray-600 text-center">No hay sorteo activo en este momento.</p>
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-primary font-medium hover:underline"
+        >
+          <Home className="h-4 w-4" />
+          Volver al inicio
+        </Link>
+      </div>
+    );
+  }
+
+  if (status === "not-today") {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-gray-50 px-4">
+        <p className="text-gray-600 text-center">
+          La participación está habilitada solo el Día de las Piedras (fecha del evento).
+        </p>
         <Link
           href="/"
           className="inline-flex items-center gap-2 text-primary font-medium hover:underline"
