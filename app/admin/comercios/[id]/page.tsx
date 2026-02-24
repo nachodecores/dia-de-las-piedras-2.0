@@ -212,7 +212,7 @@ export default function EditComercioPage() {
             </div>
             <div className="space-y-2 col-span-2">
               <Label htmlFor="fantasy_name">Nombre Fantasía</Label>
-              <Input id="fantasy_name" name="fantasy_name" placeholder="Mi Comercio" defaultValue={comercio.fantasy_name || ""} />
+              <Input id="fantasy_name" name="fantasy_name" placeholder="Mi Comercio" defaultValue={comercio.fantasy_name || ""} className="placeholder:text-muted-foreground/50" />
             </div>
             <div className="space-y-2 col-span-2">
               <Label htmlFor="short_description">Descripción Corta</Label>
@@ -221,6 +221,7 @@ export default function EditComercioPage() {
                 name="short_description"
                 placeholder="Breve descripción del comercio"
                 defaultValue={comercio.short_description || ""}
+                className="placeholder:text-muted-foreground/50"
               />
             </div>
             <div className="space-y-2 col-span-2">
@@ -230,6 +231,7 @@ export default function EditComercioPage() {
                 name="display_address"
                 placeholder="Av. Principal 123, Local 5"
                 defaultValue={comercio.display_address || ""}
+                className="placeholder:text-muted-foreground/50"
               />
             </div>
           </div>
@@ -245,6 +247,7 @@ export default function EditComercioPage() {
                 name="instagram"
                 placeholder="https://instagram.com/usuario"
                 defaultValue={comercio.instagram || ""}
+                className="placeholder:text-muted-foreground/50"
               />
             </div>
             <div className="space-y-2">
@@ -254,6 +257,7 @@ export default function EditComercioPage() {
                 name="facebook"
                 placeholder="https://facebook.com/pagina"
                 defaultValue={comercio.facebook || ""}
+                className="placeholder:text-muted-foreground/50"
               />
             </div>
             <div className="space-y-2">
@@ -263,6 +267,7 @@ export default function EditComercioPage() {
                 name="website"
                 placeholder="https://ejemplo.com"
                 defaultValue={comercio.website || ""}
+                className="placeholder:text-muted-foreground/50"
               />
             </div>
             <div className="space-y-2">
@@ -272,6 +277,7 @@ export default function EditComercioPage() {
                 name="whatsapp"
                 placeholder="+598 99 123 456"
                 defaultValue={comercio.whatsapp || ""}
+                className="placeholder:text-muted-foreground/50"
               />
             </div>
           </div>
@@ -286,6 +292,7 @@ export default function EditComercioPage() {
               name="logo_url"
               placeholder="https://ejemplo.com/logo.png"
               defaultValue={comercio.logo_url || ""}
+              className="placeholder:text-muted-foreground/50"
             />
           </div>
         </div>
@@ -368,6 +375,7 @@ export default function EditComercioPage() {
                 placeholder="20% de descuento"
                 value={newDiscount.title}
                 onChange={(e) => setNewDiscount({ ...newDiscount, title: e.target.value })}
+                className="placeholder:text-muted-foreground/50"
               />
             </div>
             <div className="space-y-1">
@@ -377,6 +385,7 @@ export default function EditComercioPage() {
                 placeholder="En todos los productos"
                 value={newDiscount.description}
                 onChange={(e) => setNewDiscount({ ...newDiscount, description: e.target.value })}
+                className="placeholder:text-muted-foreground/50"
               />
             </div>
           </div>
