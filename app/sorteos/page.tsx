@@ -88,9 +88,17 @@ export default function SorteosPage() {
     fetchActiveRaffle();
   }, []);
 
+  const pageBg = {
+    background:
+      "linear-gradient(135deg, #0f2e1e 0%, #0c4a6e 50%, #0f172a 100%)",
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-emerald-600 to-blue-600 px-6 py-8">
+      <div
+        className="min-h-screen flex items-center justify-center px-6 py-8"
+        style={pageBg}
+      >
         <p className="text-white">Cargando...</p>
       </div>
     );
@@ -98,7 +106,7 @@ export default function SorteosPage() {
 
   if (!raffle) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-emerald-600 to-blue-600 px-6 py-8">
+      <div className="min-h-screen px-6 py-8" style={pageBg}>
         <h1 className="text-2xl font-semibold mb-4 text-white">Sorteos</h1>
         <p className="text-white/90">
           No hay un sorteo activo en este momento.
@@ -109,7 +117,8 @@ export default function SorteosPage() {
 
   return (
     <div
-      className="min-h-screen px-6 py-8 max-w-lg mx-auto bg-gradient-to-b from-emerald-600 to-blue-600"
+      className="min-h-screen px-6 py-8 max-w-lg mx-auto"
+      style={pageBg}
     >
       <div className="flex items-center gap-2 mb-2">
         <Gift className="h-6 w-6 text-white" />
