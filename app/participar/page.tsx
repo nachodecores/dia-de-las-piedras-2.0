@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { Gift, Check, Home, Download } from "lucide-react";
-import { buildTalonPdf, getTalonPdfFilename, loadTalonBackgroundDataUrl } from "@/lib/talon-pdf";
+import { buildTalonPdf, getTalonPdfFilename } from "@/lib/talon-pdf";
 
 type Raffle = {
   id: string;
@@ -133,7 +133,7 @@ function ParticiparContent() {
     setSubmitting(false);
   };
 
-  const handleDownloadTalon = async () => {
+  const handleDownloadTalon = () => {
     if (!raffle || !comercioName || ticketNumber == null) return;
     const dateStr = new Date().toLocaleDateString("es-UY", {
       day: "2-digit",
@@ -142,18 +142,13 @@ function ParticiparContent() {
       hour: "2-digit",
       minute: "2-digit",
     });
-    const backgroundDataUrl = await loadTalonBackgroundDataUrl().catch(() => "");
-    const doc = buildTalonPdf(
-      {
-        raffleName: raffle.name,
-        comercioName,
-        ticketNumber,
-        participantName: participantName.trim(),
-        participantPhone: participantWhatsapp.trim(),
-        dateStr,
-      },
-      backgroundDataUrl ? { backgroundDataUrl } : undefined
-    );
+    const doc = buildTalonPdf({
+      raffleName: raffle.name,
+      comercioName,
+      ticketNumber,
+      participantName: participantName.trim(),
+      dateStr,
+    });
     doc.save(getTalonPdfFilename(ticketNumber));
   };
 
