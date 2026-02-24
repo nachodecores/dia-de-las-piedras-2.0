@@ -144,7 +144,7 @@ export default function DevCartelPage() {
           }}
         >
           <div
-            className="font-sans"
+            className="font-sans flex flex-col justify-evenly items-center"
             style={{
               border: "2px solid #d1d5db",
               borderRadius: "8px",
@@ -153,17 +153,17 @@ export default function DevCartelPage() {
               minHeight: "100%",
             }}
           >
-            <div className="flex justify-center mb-6">
+            <div className="flex justify-center shrink-0">
               <Image
-                src="/isotipoddlp.svg"
+                src="/logodialaspiedras.svg"
                 alt="Día de Las Piedras"
                 width={120}
-                height={120}
+                height={60}
                 priority
               />
             </div>
 
-            <div className="flex justify-center">
+            <div className="flex justify-center shrink-0">
               {qrDataUrl ? (
                 <img
                   src={qrDataUrl}
@@ -181,11 +181,8 @@ export default function DevCartelPage() {
               )}
             </div>
 
-            <p className="text-center text-sm text-gray-700 mt-6">
+            <p className="text-center text-lg font-medium text-gray-700 shrink-0">
               Escaneá y participá del sorteo
-            </p>
-            <p className="text-center text-[10px] text-gray-500 mt-1">
-              sólo escaneando desde el local
             </p>
           </div>
         </div>

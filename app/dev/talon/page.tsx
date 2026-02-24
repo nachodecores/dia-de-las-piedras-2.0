@@ -1,6 +1,6 @@
 "use client";
 
-import { buildTalonPdf, getTalonPdfFilename } from "@/lib/talon-pdf";
+import { buildTalonPdf, getTalonPdfFilename, loadTalonBackgroundDataUrl } from "@/lib/talon-pdf";
 import { FileDown } from "lucide-react";
 
 const MOCK_DATA = {
@@ -8,6 +8,7 @@ const MOCK_DATA = {
   comercioName: "Ferox SRL",
   ticketNumber: "0001",
   participantName: "Juan Pérez",
+  participantPhone: "09 123 456",
   dateStr: new Date().toLocaleDateString("es-UY", {
     day: "2-digit",
     month: "2-digit",
@@ -20,16 +21,18 @@ const MOCK_DATA = {
 export default function DevTalonPage() {
   const isDev = process.env.NODE_ENV === "development";
 
-  const handlePreview = () => {
-    const doc = buildTalonPdf(MOCK_DATA);
+  const handlePreview = async () => {
+    const backgroundDataUrl = await loadTalonBackgroundDataUrl().catch(() => "");
+    const doc = buildTalonPdf(MOCK_DATA, backgroundDataUrl ? { backgroundDataUrl } : undefined);
     const blob = doc.output("blob");
     const url = URL.createObjectURL(blob);
     window.open(url, "_blank");
     URL.revokeObjectURL(url);
   };
 
-  const handleDownload = () => {
-    const doc = buildTalonPdf(MOCK_DATA);
+  const handleDownload = async () => {
+    const backgroundDataUrl = await loadTalonBackgroundDataUrl().catch(() => "");
+    const doc = buildTalonPdf(MOCK_DATA, backgroundDataUrl ? { backgroundDataUrl } : undefined);
     doc.save(getTalonPdfFilename(MOCK_DATA.ticketNumber));
   };
 
