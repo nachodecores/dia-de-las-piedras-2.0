@@ -7,12 +7,9 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!
 );
 
-function normalizePhone(raw: string) {
-  return raw.replace(/\s/g, "").replace(/^\+598/, "").replace(/\D/g, "");
-}
 function isValidPhone(raw: string) {
-  const d = normalizePhone(raw);
-  return d.length >= 8 && d.length <= 9;
+  const d = raw.replace(/\D/g, "");
+  return d.length === 9 && d.startsWith("09");
 }
 
 export async function POST(req: NextRequest) {
@@ -74,7 +71,7 @@ export async function POST(req: NextRequest) {
         raffle_id: raffle.id,
         comercio_id: comercio.id,
         name: trimmedName,
-        whatsapp: trimmedPhone,
+        whatsapp: trimmedPhone.replace(/\D/g, ""),
       })
       .select("ticket_number")
       .single();

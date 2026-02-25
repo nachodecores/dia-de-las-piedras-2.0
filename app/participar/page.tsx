@@ -35,10 +35,10 @@ function ParticiparContent() {
   const [nameError, setNameError] = useState("");
   const [phoneError, setPhoneError] = useState("");
 
-  const normalizePhone = (raw: string) => raw.replace(/\s/g, "").replace(/^\+598/, "").replace(/\D/g, "");
+  const formatPhoneInput = (raw: string) => raw.replace(/\D/g, "").slice(0, 9);
   const isValidPhone = (raw: string) => {
-    const digits = normalizePhone(raw);
-    return digits.length >= 8 && digits.length <= 9;
+    const digits = raw.replace(/\D/g, "");
+    return digits.length === 9 && digits.startsWith("09");
   };
 
   useEffect(() => {
@@ -103,7 +103,7 @@ function ParticiparContent() {
       valid = false;
     }
     if (!isValidPhone(participantWhatsapp)) {
-      setPhoneError("Ingresá un teléfono válido");
+      setPhoneError('El formato debe ser 09 seguido de 7 dígitos (ej: 091234567)');
       valid = false;
     }
     if (!valid) return;
@@ -116,7 +116,7 @@ function ParticiparContent() {
       body: JSON.stringify({
         code,
         name,
-        whatsapp: participantWhatsapp.trim(),
+        whatsapp: participantWhatsapp,
       }),
     });
     const data = await res.json().catch(() => ({}));
@@ -286,14 +286,15 @@ function ParticiparContent() {
                       type="tel"
                       value={participantWhatsapp}
                       onChange={(e) => {
-                        setParticipantWhatsapp(e.target.value);
+                        setParticipantWhatsapp(formatPhoneInput(e.target.value));
                         if (phoneError) setPhoneError("");
                       }}
                       className="w-full px-4 py-2 rounded-lg text-gray-900 bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500"
-                      placeholder="Ej: 09 123 456"
+                      placeholder="091234567"
                       autoComplete="tel"
                       required
                       inputMode="numeric"
+                      maxLength={9}
                     />
                     {phoneError && (
                       <p className="text-xs text-red-600 mt-1" role="alert">

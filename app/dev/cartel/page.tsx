@@ -153,14 +153,24 @@ export default function DevCartelPage() {
               minHeight: "100%",
             }}
           >
-            <div className="flex justify-center shrink-0">
+            <div
+              className="flex w-full items-center justify-between gap-4 shrink-0"
+              style={{ marginBottom: "8px" }}
+            >
               <Image
                 src="/logodialaspiedras.svg"
                 alt="Día de Las Piedras"
-                width={120}
-                height={60}
+                width={100}
+                height={40}
                 priority
+                className="shrink-0 object-contain"
               />
+              <span
+                className="text-right text-lg font-semibold text-gray-800 leading-tight"
+                style={{ flex: 1 }}
+              >
+                {selectedComercio.fantasy_name || selectedComercio.slug}
+              </span>
             </div>
 
             <div className="flex justify-center shrink-0">
