@@ -24,6 +24,7 @@ type Prize = {
   id: string;
   name: string;
   description: string | null;
+  image_url: string | null;
   winner_participant_id: string | null;
   winner?: Participant | null;
 };
@@ -45,6 +46,7 @@ export default function SorteoParticipantsPage() {
   const [loading, setLoading] = useState(true);
   const [newPrizeName, setNewPrizeName] = useState("");
   const [newPrizeDescription, setNewPrizeDescription] = useState("");
+  const [newPrizeImageUrl, setNewPrizeImageUrl] = useState("");
   const [addingPrize, setAddingPrize] = useState(false);
 
   const fetchData = async () => {
@@ -77,11 +79,13 @@ export default function SorteoParticipantsPage() {
     setAddingPrize(true);
 
     const description = newPrizeDescription.trim() || null;
+    const imageUrl = newPrizeImageUrl.trim() || null;
 
     const { error } = await supabase.from("raffle_prizes").insert({
       raffle_id: raffleId,
       name: newPrizeName,
       description,
+      image_url: imageUrl,
     });
 
     if (error) {
@@ -93,6 +97,7 @@ export default function SorteoParticipantsPage() {
     toast.success("Premio agregado");
     setNewPrizeName("");
     setNewPrizeDescription("");
+    setNewPrizeImageUrl("");
     setAddingPrize(false);
     fetchData();
   };
@@ -164,6 +169,12 @@ export default function SorteoParticipantsPage() {
             placeholder="Descripción (opcional)"
             value={newPrizeDescription}
             onChange={(e) => setNewPrizeDescription(e.target.value)}
+            className="flex-1 min-w-[180px] text-sm"
+          />
+          <Input
+            placeholder="URL imagen (opcional)"
+            value={newPrizeImageUrl}
+            onChange={(e) => setNewPrizeImageUrl(e.target.value)}
             className="flex-1 min-w-[180px] text-sm"
           />
           <Button

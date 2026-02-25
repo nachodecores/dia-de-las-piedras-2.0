@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
-import { Gift } from "lucide-react";
+import { Gift, ImageIcon } from "lucide-react";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import {
   Dialog,
   DialogContent,
@@ -21,6 +22,7 @@ type Prize = {
   id: string;
   name: string;
   description?: string | null;
+  image_url?: string | null;
   created_at?: string;
   raffle_participants?: PrizeWinner | PrizeWinner[] | null;
 };
@@ -52,13 +54,14 @@ export default function SorteosPage() {
   const [raffle, setRaffle] = useState<ActiveRaffle | null>(null);
   const [loading, setLoading] = useState(true);
   const [participarModalOpen, setParticiparModalOpen] = useState(false);
+  const [prizeImageModal, setPrizeImageModal] = useState<{ url: string; name: string } | null>(null);
 
   useEffect(() => {
     const fetchActiveRaffle = async () => {
       const { data } = await supabase
         .from("raffles")
         .select(
-          "id, name, raffle_date, raffle_prizes(id, name, description, created_at, raffle_participants!winner_participant_id(name, whatsapp))"
+          "id, name, raffle_date, raffle_prizes(id, name, description, image_url, created_at, raffle_participants!winner_participant_id(name, whatsapp))"
         )
         .eq("active", true)
         .order("created_at", { ascending: false })
@@ -144,7 +147,7 @@ export default function SorteosPage() {
                   <span className="font-mono text-sm font-semibold text-primary shrink-0">
                     #{index + 1}
                   </span>
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium text-[#21A85B]">{prize.name}</div>
                     {prize.description && (
                       <p className="text-[11px] text-muted-foreground mt-0.5">
@@ -162,6 +165,16 @@ export default function SorteosPage() {
                       ) : null;
                     })()}
                   </div>
+                  {prize.image_url && (
+                    <button
+                      type="button"
+                      onClick={() => setPrizeImageModal({ url: prize.image_url!, name: prize.name })}
+                      className="shrink-0 p-1.5 rounded-md text-[#21A85B] hover:bg-[#21A85B]/10 transition-colors"
+                      aria-label="Ver foto del premio"
+                    >
+                      <ImageIcon className="h-4 w-4" />
+                    </button>
+                  )}
                 </li>
               ))}
             </ol>
@@ -198,6 +211,23 @@ export default function SorteosPage() {
             </Link>
             .
           </p>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!prizeImageModal} onOpenChange={(open) => !open && setPrizeImageModal(null)}>
+        <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-hidden border-0 bg-transparent shadow-none [&>[data-slot=dialog-close]]:text-white [&>[data-slot=dialog-close]]:hover:text-white">
+          {prizeImageModal && (
+            <>
+              <VisuallyHidden>
+                <DialogTitle>Foto del premio: {prizeImageModal.name}</DialogTitle>
+              </VisuallyHidden>
+              <img
+                src={prizeImageModal.url}
+                alt={prizeImageModal.name}
+                className="w-full h-auto max-h-[85vh] object-contain block"
+              />
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>

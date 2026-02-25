@@ -4,13 +4,15 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2, Users, Gift, Trophy } from "lucide-react";
+import { Plus, Trash2, Users, Gift, Trophy, Pencil, Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { formatDateOnly } from "@/lib/utils";
 
 type Prize = {
   id: string;
   name: string;
+  description?: string | null;
+  image_url?: string | null;
   created_at?: string;
 };
 
@@ -31,12 +33,19 @@ export default function SorteosPage() {
   const [addingRaffle, setAddingRaffle] = useState(false);
   const [newPrizeNames, setNewPrizeNames] = useState<Record<string, string>>({});
   const [newPrizeDescriptions, setNewPrizeDescriptions] = useState<Record<string, string>>({});
+  const [newPrizeImageUrls, setNewPrizeImageUrls] = useState<Record<string, string>>({});
   const [addingPrize, setAddingPrize] = useState<string | null>(null);
+  const [editingPrizeId, setEditingPrizeId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<{ name: string; description: string; image_url: string }>({
+    name: "",
+    description: "",
+    image_url: "",
+  });
 
   const fetchRaffles = async () => {
     const { data } = await supabase
       .from("raffles")
-      .select("*, raffle_participants(id), raffle_prizes(id, name, created_at)")
+      .select("*, raffle_participants(id), raffle_prizes(id, name, description, image_url, created_at)")
       .order("created_at", { ascending: false });
 
     const rafflesWithData = (data || []).map((r: any) => ({
@@ -117,6 +126,7 @@ export default function SorteosPage() {
     if (!prizeName || addingPrize === raffleId) return;
 
     const prizeDescription = newPrizeDescriptions[raffleId]?.trim() || null;
+    const prizeImageUrl = newPrizeImageUrls[raffleId]?.trim() || null;
 
     setAddingPrize(raffleId);
     const raffle = raffles.find((r) => r.id === raffleId);
@@ -125,6 +135,7 @@ export default function SorteosPage() {
       raffle_id: raffleId,
       name: prizeName,
       description: prizeDescription,
+      image_url: prizeImageUrl,
     });
 
     if (error) {
@@ -136,6 +147,7 @@ export default function SorteosPage() {
     toast.success("Premio agregado");
     setNewPrizeNames((prev) => ({ ...prev, [raffleId]: "" }));
     setNewPrizeDescriptions((prev) => ({ ...prev, [raffleId]: "" }));
+    setNewPrizeImageUrls((prev) => ({ ...prev, [raffleId]: "" }));
     setAddingPrize(null);
     fetchRaffles();
   };
@@ -149,6 +161,46 @@ export default function SorteosPage() {
     }
 
     toast.success("Premio eliminado");
+    if (editingPrizeId === prizeId) setEditingPrizeId(null);
+    fetchRaffles();
+  };
+
+  const handleStartEditPrize = (prize: Prize) => {
+    setEditingPrizeId(prize.id);
+    setEditForm({
+      name: prize.name,
+      description: prize.description || "",
+      image_url: prize.image_url || "",
+    });
+  };
+
+  const handleCancelEditPrize = () => {
+    setEditingPrizeId(null);
+  };
+
+  const handleSavePrize = async (prizeId: string) => {
+    const name = editForm.name.trim();
+    if (!name) {
+      toast.error("El nombre es obligatorio");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("raffle_prizes")
+      .update({
+        name,
+        description: editForm.description.trim() || null,
+        image_url: editForm.image_url.trim() || null,
+      })
+      .eq("id", prizeId);
+
+    if (error) {
+      toast.error("Error al actualizar premio", { description: error.message });
+      return;
+    }
+
+    toast.success("Premio actualizado");
+    setEditingPrizeId(null);
     fetchRaffles();
   };
 
@@ -241,20 +293,91 @@ export default function SorteosPage() {
                     {raffle.prizes.map((prize, index) => (
                       <div
                         key={prize.id}
-                        className="flex items-center justify-between py-1 px-2 bg-muted/30 rounded text-sm"
+                        className="flex flex-col gap-2 py-2 px-3 bg-muted/30 rounded text-sm"
                       >
-                        <span>
-                          <span className="font-mono text-xs text-muted-foreground mr-2">#{index + 1}</span>
-                          {prize.name}
-                        </span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0"
-                          onClick={() => handleDeletePrize(prize.id)}
-                        >
-                          <Trash2 className="h-3 w-3 text-destructive" />
-                        </Button>
+                        {editingPrizeId === prize.id ? (
+                          <>
+                            <div className="flex flex-wrap gap-2">
+                              <Input
+                                placeholder="Nombre"
+                                value={editForm.name}
+                                onChange={(e) =>
+                                  setEditForm((prev) => ({ ...prev, name: e.target.value }))
+                                }
+                                className="flex-1 h-8 min-w-[120px]"
+                              />
+                              <Input
+                                placeholder="Descripción"
+                                value={editForm.description}
+                                onChange={(e) =>
+                                  setEditForm((prev) => ({ ...prev, description: e.target.value }))
+                                }
+                                className="flex-1 h-8 min-w-[120px] text-xs"
+                              />
+                              <Input
+                                placeholder="URL imagen"
+                                value={editForm.image_url}
+                                onChange={(e) =>
+                                  setEditForm((prev) => ({ ...prev, image_url: e.target.value }))
+                                }
+                                className="flex-1 h-8 min-w-[120px] text-xs"
+                              />
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="default"
+                                size="sm"
+                                className="h-7"
+                                onClick={() => handleSavePrize(prize.id)}
+                              >
+                                <Check className="h-3 w-3 mr-1" />
+                                Guardar
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7"
+                                onClick={handleCancelEditPrize}
+                              >
+                                <X className="h-3 w-3 mr-1" />
+                                Cancelar
+                              </Button>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex items-center justify-between">
+                            <span>
+                              <span className="font-mono text-xs text-muted-foreground mr-2">
+                                #{index + 1}
+                              </span>
+                              {prize.name}
+                              {prize.description && (
+                                <span className="text-muted-foreground ml-2">
+                                  — {prize.description}
+                                </span>
+                              )}
+                            </span>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                                onClick={() => handleStartEditPrize(prize)}
+                                aria-label="Editar premio"
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                                onClick={() => handleDeletePrize(prize.id)}
+                              >
+                                <Trash2 className="h-3 w-3 text-destructive" />
+                              </Button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -273,6 +396,17 @@ export default function SorteosPage() {
                     value={newPrizeDescriptions[raffle.id] || ""}
                     onChange={(e) =>
                       setNewPrizeDescriptions((prev) => ({
+                        ...prev,
+                        [raffle.id]: e.target.value,
+                      }))
+                    }
+                    className="flex-1 h-8 text-xs min-w-[180px]"
+                  />
+                  <Input
+                    placeholder="URL imagen (opcional)"
+                    value={newPrizeImageUrls[raffle.id] || ""}
+                    onChange={(e) =>
+                      setNewPrizeImageUrls((prev) => ({
                         ...prev,
                         [raffle.id]: e.target.value,
                       }))

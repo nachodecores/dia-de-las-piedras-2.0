@@ -10,7 +10,7 @@ export function Sponsors() {
         rel="noopener noreferrer"
         className="block rounded-lg border bg-card p-4 shadow-sm md:w-[30%] text-center hover:shadow-md transition-shadow"
       >
-        <p className="text-sm text-muted-foreground">Día de Las Piedras es una iniciativa exclusiva para socios del</p>
+        <p className="text-sm text-muted-foreground">Organiza:</p>
         <div className="flex items-center justify-center mt-2">
           <Image
             src="/logoccialp.svg"

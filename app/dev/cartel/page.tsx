@@ -10,6 +10,7 @@ type Comercio = {
   fantasy_name: string | null;
   slug: string;
   secret_code: string;
+  logo_url: string | null;
 };
 
 export default function DevCartelPage() {
@@ -26,7 +27,7 @@ export default function DevCartelPage() {
     const fetchComercios = async () => {
       const { data } = await supabase
         .from("comercios")
-        .select("id, fantasy_name, slug, secret_code")
+        .select("id, fantasy_name, slug, secret_code, logo_url")
         .eq("active", true)
         .order("fantasy_name");
       setComercios(data ?? []);
@@ -118,14 +119,34 @@ export default function DevCartelPage() {
           </select>
         </div>
 
-        <button
-          type="button"
-          onClick={handlePrint}
-          className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:opacity-90 font-medium"
-        >
-          <Printer className="h-4 w-4" />
-          Imprimir cartel
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={handlePrint}
+            className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:opacity-90 font-medium"
+          >
+            <Printer className="h-4 w-4" />
+            Imprimir cartel
+          </button>
+          <a
+            href="/dev/cartel/print-all?size=A5"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 bg-secondary text-secondary-foreground px-4 py-2 rounded-lg hover:opacity-90 font-medium"
+          >
+            <Printer className="h-4 w-4" />
+            Imprimir todos A5
+          </a>
+          <a
+            href="/dev/cartel/print-all?size=A6"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 bg-secondary text-secondary-foreground px-4 py-2 rounded-lg hover:opacity-90 font-medium"
+          >
+            <Printer className="h-4 w-4" />
+            Imprimir todos A6
+          </a>
+        </div>
       </div>
 
       {/* Cartel (vista previa + contenido a imprimir) */}
@@ -153,24 +174,15 @@ export default function DevCartelPage() {
               minHeight: "100%",
             }}
           >
-            <div
-              className="flex w-full items-center justify-between gap-4 shrink-0"
-              style={{ marginBottom: "8px" }}
-            >
+            <div className="flex justify-center shrink-0" style={{ marginBottom: "8px" }}>
               <Image
                 src="/logodialaspiedras.svg"
                 alt="Día de Las Piedras"
-                width={100}
-                height={40}
+                width={160}
+                height={64}
                 priority
-                className="shrink-0 object-contain"
+                className="object-contain"
               />
-              <span
-                className="text-right text-lg font-semibold text-gray-800 leading-tight"
-                style={{ flex: 1 }}
-              >
-                {selectedComercio.fantasy_name || selectedComercio.slug}
-              </span>
             </div>
 
             <div className="flex justify-center shrink-0">
@@ -191,9 +203,23 @@ export default function DevCartelPage() {
               )}
             </div>
 
-            <p className="text-center text-lg font-medium text-gray-700 shrink-0">
-              Escaneá y participá del sorteo
+            <p className="text-center text-xl font-medium text-gray-700 shrink-0">
+              ¡Escaneá el QR y participá del sorteo!
             </p>
+
+            <div className="flex justify-center shrink-0 mt-2 min-h-[48px]">
+              {selectedComercio.logo_url ? (
+                <img
+                  src={selectedComercio.logo_url}
+                  alt={selectedComercio.fantasy_name || selectedComercio.slug}
+                  className="max-h-[48px] max-w-[120px] object-contain"
+                />
+              ) : (
+                <span className="text-center text-lg font-semibold text-gray-800 leading-tight">
+                  {selectedComercio.fantasy_name || selectedComercio.slug}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       )}
