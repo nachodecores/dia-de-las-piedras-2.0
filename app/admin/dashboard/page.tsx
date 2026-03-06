@@ -246,9 +246,10 @@ export default function DashboardPage() {
                   layout="vertical"
                   align="right"
                   verticalAlign="middle"
-                  formatter={(value, entry: { payload?: { value: number } }) =>
-                    `${value}: ${entry.payload?.value ?? ""}`
-                  }
+                  formatter={(value, entry) => {
+                    const payload = entry?.payload as { value?: number } | undefined;
+                    return `${value}: ${payload?.value ?? ""}`;
+                  }}
                 />
               </PieChart>
             </ResponsiveContainer>
