@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Store, Pencil } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 
@@ -401,7 +401,6 @@ export default function SociosPage() {
         <TableHeader>
           <TableRow className="bg-muted/50">
             <TableHead className="whitespace-nowrap px-4 py-3 font-semibold w-10"></TableHead>
-            <TableHead className="whitespace-nowrap px-4 py-3 font-semibold bg-amber-100/50">Comercio</TableHead>
             <TableHead className="whitespace-nowrap px-4 py-3 font-semibold border-l">Nº Socio</TableHead>
             <TableHead className="whitespace-nowrap px-4 py-3 font-semibold">Razón Social</TableHead>
             <TableHead className="whitespace-nowrap px-4 py-3 font-semibold">Nombre Fantasía</TableHead>
@@ -426,6 +425,7 @@ export default function SociosPage() {
             <TableHead className="whitespace-nowrap px-4 py-3 font-semibold">Teléfono</TableHead>
             <TableHead className="whitespace-nowrap px-4 py-3 font-semibold">Email</TableHead>
             <TableHead className="whitespace-nowrap px-4 py-3 font-semibold border-l">CPY</TableHead>
+            <TableHead className="whitespace-nowrap px-4 py-3 font-semibold bg-amber-100/50">DDLP</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -446,19 +446,6 @@ export default function SociosPage() {
                 >
                   <TableCell className="px-4 py-3">
                     <Pencil className="h-3 w-3 text-muted-foreground" />
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap px-4 py-3 bg-amber-50/50" onClick={(e) => e.stopPropagation()}>
-                    {hasComercio ? (
-                      <Link
-                        href={`/admin/comercios/${member.comercios!.id}`}
-                        className="inline-flex items-center gap-1 bg-amber-500 text-white text-xs px-2 py-1 rounded-full font-medium hover:bg-amber-600 transition-colors"
-                      >
-                        <Store className="h-3 w-3" />
-                        {member.comercios!.fantasy_name || member.comercios!.slug}
-                      </Link>
-                    ) : (
-                      <span className="text-muted-foreground text-xs">-</span>
-                    )}
                   </TableCell>
                   <TableCell className="whitespace-nowrap px-4 py-3 font-medium border-l">{member.member_number}</TableCell>
                   <TableCell className="whitespace-nowrap px-4 py-3">{member.business_name}</TableCell>
@@ -484,6 +471,7 @@ export default function SociosPage() {
                   <TableCell className="whitespace-nowrap px-4 py-3">{member.phone}</TableCell>
                   <TableCell className="whitespace-nowrap px-4 py-3">{member.email}</TableCell>
                   <TableCell className="whitespace-nowrap px-4 py-3 border-l">{member.cpy_client ? "✓" : "✗"}</TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3 bg-amber-50/50">{hasComercio ? "✓" : "✗"}</TableCell>
                 </TableRow>
               );
             })

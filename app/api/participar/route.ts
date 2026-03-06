@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { isParticipationAllowed } from "@/lib/participation-date";
+import { formatDateOnly } from "@/lib/utils";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -56,10 +57,12 @@ export async function POST(req: NextRequest) {
     }
 
     if (!isParticipationAllowed(raffle.raffle_date)) {
+      const dateStr =
+        formatDateOnly(raffle.raffle_date, { day: "numeric", month: "long", year: "numeric" }) ||
+        "fecha del evento";
       return NextResponse.json(
         {
-          error:
-            "La participación está habilitada solo el Día de las Piedras (fecha del evento).",
+          error: `La participación está habilitada solo el Día de las Piedras (${dateStr}).`,
         },
         { status: 403 }
       );

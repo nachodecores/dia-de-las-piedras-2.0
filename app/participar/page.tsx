@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Gift, Check, Home, Download } from "lucide-react";
 import { buildTalonPdf, getTalonPdfFilename } from "@/lib/talon-pdf";
 import { isParticipationAllowed } from "@/lib/participation-date";
+import { formatDateOnly } from "@/lib/utils";
 
 type Raffle = {
   id: string;
@@ -195,7 +196,12 @@ function ParticiparContent() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-gray-50 px-4">
         <p className="text-gray-600 text-center">
-          La participación está habilitada solo el Día de las Piedras (fecha del evento).
+          La participación está habilitada solo el Día de las Piedras
+          {raffle?.raffle_date ? (
+            <> ({formatDateOnly(raffle.raffle_date, { day: "numeric", month: "long", year: "numeric" })}).</>
+          ) : (
+            " (fecha del evento)."
+          )}
         </p>
         <Link
           href="/"

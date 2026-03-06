@@ -188,6 +188,9 @@ function ComercioContent() {
         {discounts.length > 0 && (
           <div className="mt-8">
             <h2 className="text-xl font-semibold mb-4 text-white/90">Descuentos ofrecidos</h2>
+            <p className="text-sm text-white/70 mb-3">
+              Los descuentos aplican solo en compras en el local físico. No aplican en compras web.
+            </p>
             <div className="space-y-3">
               {discounts.map((discount) => (
                 <div

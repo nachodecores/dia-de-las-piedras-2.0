@@ -36,7 +36,10 @@ No se publicarán fotografías ni datos completos.
 El Organizador podrá anular participaciones duplicadas, falsas o que no cumplan con las condiciones establecidas.
 
 7. Aceptación
-La participación implica la aceptación del presente reglamento.`;
+La participación implica la aceptación del presente reglamento.
+
+8. Descuentos
+Los descuentos publicados por los comercios aplican únicamente en compras realizadas en el local físico. No aplican en compras realizadas por web.`;
 
 export function ReglamentoModal() {
   return (

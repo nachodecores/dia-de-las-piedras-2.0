@@ -134,15 +134,24 @@ function PrintAllContent() {
 
   useEffect(() => {
     const fetchComercios = async () => {
-      const { data } = await supabase
+      const idsParam = searchParams.get("ids");
+      const ids = idsParam ? idsParam.split(",").filter(Boolean) : [];
+
+      let query = supabase
         .from("comercios")
         .select("id, fantasy_name, slug, secret_code, logo_url")
         .eq("active", true)
         .order("fantasy_name");
+
+      if (ids.length > 0) {
+        query = query.in("id", ids);
+      }
+
+      const { data } = await query;
       setComercios(data ?? []);
     };
     fetchComercios();
-  }, []);
+  }, [searchParams]);
 
   const perPage = size === "A6" ? 4 : 2;
   const pages = useMemo(() => {
