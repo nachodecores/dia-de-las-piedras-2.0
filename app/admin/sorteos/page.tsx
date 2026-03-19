@@ -4,9 +4,14 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2, Users, Gift, Trophy, Pencil, Check, X } from "lucide-react";
+import { Plus, Trash2, Users, Gift, Trophy, Pencil, Check, X, Shuffle } from "lucide-react";
 import { toast } from "sonner";
 import { formatDateOnly } from "@/lib/utils";
+
+type WinnerInfo = {
+  name: string;
+  whatsapp: string;
+};
 
 type Prize = {
   id: string;
@@ -14,6 +19,8 @@ type Prize = {
   description?: string | null;
   image_url?: string | null;
   created_at?: string;
+  winner_participant_id?: string | null;
+  raffle_participants?: WinnerInfo | WinnerInfo[] | null;
 };
 
 type Raffle = {
@@ -36,16 +43,26 @@ export default function SorteosPage() {
   const [newPrizeImageUrls, setNewPrizeImageUrls] = useState<Record<string, string>>({});
   const [addingPrize, setAddingPrize] = useState<string | null>(null);
   const [editingPrizeId, setEditingPrizeId] = useState<string | null>(null);
+  const [drawingRaffleId, setDrawingRaffleId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<{ name: string; description: string; image_url: string }>({
     name: "",
     description: "",
     image_url: "",
   });
 
+  function shuffle<T>(arr: T[]): T[] {
+    const out = [...arr];
+    for (let i = out.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [out[i], out[j]] = [out[j], out[i]];
+    }
+    return out;
+  }
+
   const fetchRaffles = async () => {
     const { data } = await supabase
       .from("raffles")
-      .select("*, raffle_participants(id), raffle_prizes(id, name, description, image_url, created_at)")
+      .select("*, raffle_participants(id), raffle_prizes(id, name, description, image_url, created_at, winner_participant_id, raffle_participants!winner_participant_id(name, whatsapp))")
       .order("created_at", { ascending: false });
 
     const rafflesWithData = (data || []).map((r: any) => ({
@@ -204,6 +221,57 @@ export default function SorteosPage() {
     fetchRaffles();
   };
 
+  const handleRunDraw = async (raffle: Raffle) => {
+    if (raffle.prizes.length === 0) {
+      toast.error("Agregá al menos un premio antes de sortear");
+      return;
+    }
+    if ((raffle.participant_count ?? 0) === 0) {
+      toast.error("No hay participantes para sortear");
+      return;
+    }
+    const hasWinners = raffle.prizes.some((p) => p.winner_participant_id);
+    if (hasWinners && !confirm("Ya hay ganadores. ¿Realizar un nuevo sorteo? Se reemplazarán los ganadores actuales.")) {
+      return;
+    }
+
+    setDrawingRaffleId(raffle.id);
+
+    const { data: participants, error: partError } = await supabase
+      .from("raffle_participants")
+      .select("id")
+      .eq("raffle_id", raffle.id);
+
+    if (partError || !participants?.length) {
+      toast.error("Error al cargar participantes");
+      setDrawingRaffleId(null);
+      return;
+    }
+
+    const shuffled = shuffle(participants);
+    const prizes = [...raffle.prizes].sort(
+      (a, b) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime()
+    );
+
+    for (let i = 0; i < prizes.length; i++) {
+      const winnerId = i < shuffled.length ? shuffled[i].id : null;
+      const { error } = await supabase
+        .from("raffle_prizes")
+        .update({ winner_participant_id: winnerId })
+        .eq("id", prizes[i].id);
+      if (error) {
+        toast.error("Error al asignar ganador");
+        setDrawingRaffleId(null);
+        fetchRaffles();
+        return;
+      }
+    }
+
+    toast.success("Sorteo realizado correctamente");
+    setDrawingRaffleId(null);
+    fetchRaffles();
+  };
+
   if (loading) {
     return <div>Cargando...</div>;
   }
@@ -263,6 +331,27 @@ export default function SorteosPage() {
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleRunDraw(raffle)}
+                    disabled={
+                      drawingRaffleId === raffle.id ||
+                      raffle.prizes.length === 0 ||
+                      (raffle.participant_count ?? 0) === 0
+                    }
+                    title={
+                      raffle.prizes.length === 0
+                        ? "Agregá premios primero"
+                        : (raffle.participant_count ?? 0) === 0
+                          ? "No hay participantes"
+                          : "Realizar sorteo"
+                    }
+                  >
+                    <Shuffle className="h-3 w-3 mr-1" />
+                    {drawingRaffleId === raffle.id ? "..." : "Sortear"}
+                  </Button>
                   <Button
                     type="button"
                     variant={raffle.active ? "default" : "outline"}
@@ -345,18 +434,19 @@ export default function SorteosPage() {
                             </div>
                           </>
                         ) : (
-                          <div className="flex items-center justify-between">
-                            <span>
-                              <span className="font-mono text-xs text-muted-foreground mr-2">
-                                #{index + 1}
-                              </span>
-                              {prize.name}
-                              {prize.description && (
-                                <span className="text-muted-foreground ml-2">
-                                  — {prize.description}
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center justify-between">
+                              <span>
+                                <span className="font-mono text-xs text-muted-foreground mr-2">
+                                  #{index + 1}
                                 </span>
-                              )}
-                            </span>
+                                {prize.name}
+                                {prize.description && (
+                                  <span className="text-muted-foreground ml-2">
+                                    — {prize.description}
+                                  </span>
+                                )}
+                              </span>
                             <div className="flex items-center gap-1">
                               <Button
                                 variant="ghost"
@@ -376,6 +466,27 @@ export default function SorteosPage() {
                                 <Trash2 className="h-3 w-3 text-destructive" />
                               </Button>
                             </div>
+                            </div>
+                            {prize.winner_participant_id && (() => {
+                              const winner = Array.isArray(prize.raffle_participants)
+                                ? prize.raffle_participants[0]
+                                : prize.raffle_participants;
+                              if (!winner?.name) return null;
+                              return (
+                                <p className="text-xs text-muted-foreground pl-5">
+                                  Ganador: <strong className="text-foreground">{winner.name}</strong>
+                                  {" · "}
+                                  <a
+                                    href={`https://wa.me/${winner.whatsapp.replace(/\D/g, "")}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-primary hover:underline"
+                                  >
+                                    {winner.whatsapp}
+                                  </a>
+                                </p>
+                              );
+                            })()}
                           </div>
                         )}
                       </div>

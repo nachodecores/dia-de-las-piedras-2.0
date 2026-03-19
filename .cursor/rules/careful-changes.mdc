@@ -1,0 +1,11 @@
+---
+description: Implementar cambios con mucho cuidado para no afectar el código existente
+alwaysApply: true
+---
+
+# Cambios con Cuidado
+
+- Antes de modificar: revisar el alcance del cambio y archivos afectados.
+- Preferir cambios mínimos y puntuales sobre refactors amplios.
+- Evitar modificar código que no sea estrictamente necesario para el objetivo.
+- Verificar que los cambios no rompan flujos o funcionalidad ya existente.
