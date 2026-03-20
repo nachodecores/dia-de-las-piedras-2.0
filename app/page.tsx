@@ -12,8 +12,8 @@ export default function Home() {
         ¡No olvides mencionar al Día de las Piedras para acceder a los descuentos!
       </p>
 
-      <div className="flex flex-col items-center gap-3 px-6 py-8">
-        <p className="text-2xl font-medium" style={{ color: "#1F2A44" }}>
+      <div className="flex flex-col items-center gap-3 px-6 py-8 bg-teal-800">
+        <p className="text-2xl font-medium text-white">
           ¡Escribinos!
         </p>
         <div className="flex items-center justify-center gap-6">
@@ -25,7 +25,7 @@ export default function Home() {
             aria-label="WhatsApp del Centro Comercial"
           >
             <Image
-              src="/iconowhapp.svg"
+              src="/iconowhappblanco.svg"
               alt="WhatsApp"
               width={40}
               height={40}
@@ -39,7 +39,7 @@ export default function Home() {
             aria-label="Instagram del Centro Comercial"
           >
             <Image
-              src="/iconoinsta.svg"
+              src="/iconoinstablanco.svg"
               alt="Instagram"
               width={40}
               height={40}
