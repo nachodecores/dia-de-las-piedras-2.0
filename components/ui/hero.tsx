@@ -55,41 +55,43 @@ export function Hero() {
             zIndex: index === current ? 10 : 0,
           }}
         >
-          <h1 className="mb-4 text-3xl font-bold leading-tight text-[#1F2A44] drop-shadow-sm md:text-4xl">
-            {index === 1 ? (
-              slide.title
-            ) : (
-              <>
-                {slide.title}
-                <br />
-                <span className="text-[#1F2A44]/90">{slide.subtitle}</span>
-              </>
+          <div className="rounded-2xl bg-white/60 px-6 py-5 shadow-[0_0_40px_rgba(255,255,255,0.6)]">
+            <h1 className="mb-4 text-3xl font-bold leading-tight text-[#1F2A44] drop-shadow-sm md:text-4xl">
+              {index === 1 ? (
+                slide.title
+              ) : (
+                <>
+                  {slide.title}
+                  <br />
+                  <span className="text-[#1F2A44]/90">{slide.subtitle}</span>
+                </>
+              )}
+            </h1>
+            {index === 1 && (
+              <Link
+                href="/sorteos"
+                className="mb-4 inline-flex rounded-full bg-[#1F2A44]/20 px-4 py-1.5 text-sm font-medium text-[#1F2A44] backdrop-blur-sm hover:bg-[#1F2A44]/30 transition-colors"
+              >
+                premios de este mes
+              </Link>
             )}
-          </h1>
-          {index === 1 && (
-            <Link
-              href="/sorteos"
-              className="mb-4 inline-flex rounded-full bg-[#1F2A44]/20 px-4 py-1.5 text-sm font-medium text-[#1F2A44] backdrop-blur-sm hover:bg-[#1F2A44]/30 transition-colors"
-            >
-              premios de este mes
-            </Link>
-          )}
-          <p className="mb-8 max-w-md text-[#1F2A44]/90 drop-shadow-sm">
-            {index === 0 ? (
-              <>
-                Aprovechá los beneficios exclusivos en{" "}
-                <Link
-                  href="/comercios"
-                  className="font-medium text-[#1F2A44] underline decoration-[#1F2A44]/70 underline-offset-2 hover:decoration-[#1F2A44]"
-                >
-                  comercios adheridos
-                </Link>
-                .
-              </>
-            ) : (
-              slide.description
-            )}
-          </p>
+            <p className="mb-0 max-w-md text-[#1F2A44]/90 drop-shadow-sm">
+              {index === 0 ? (
+                <>
+                  Aprovechá los beneficios exclusivos en{" "}
+                  <Link
+                    href="/comercios"
+                    className="font-medium text-[#1F2A44] underline decoration-[#1F2A44]/70 underline-offset-2 hover:decoration-[#1F2A44]"
+                  >
+                    comercios adheridos
+                  </Link>
+                  .
+                </>
+              ) : (
+                slide.description
+              )}
+            </p>
+          </div>
         </div>
       ))}
 
